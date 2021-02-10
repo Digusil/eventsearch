@@ -7,6 +7,7 @@
 **/_test/
 **/.playcorner/
 **/_playcorner/
+**/_*/
 
 # program specific patterns
 **/\.idea/
