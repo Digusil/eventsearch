@@ -299,8 +299,8 @@ def load_eventdataframe_from_hdf5(filepath: str, use_class: type = None):
 
     try:
         if use_class is None:
-            from events import EventDataFrame
-            from snaa.core import CoreEventDataFrame
+            from eventsearch.events import EventDataFrame
+            from eventsearch.core import CoreEventDataFrame
 
             cls = locals()[load_attributes(f, 'class_name')]
         elif use_class.__name__ == load_attributes(f, 'class_name'):

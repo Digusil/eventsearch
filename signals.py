@@ -12,11 +12,11 @@ class SingleSignal(CoreSingleSignal):
     def __init__(self, *args, **kwargs):
         super(SingleSignal, self).__init__(*args, **kwargs)
 
-    def to_smoothed_signal(self, **kwargs):
+    def to_smoothed_signal(self, listed=False, **kwargs):
         if 'name' in kwargs:
-            smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), **kwargs)
+            smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), listed=listed, **kwargs)
         else:
-            smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), name='smoothed_' + self.name, **kwargs)
+            smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), name='smoothed_' + self.name, listed=listed, **kwargs)
 
         if 'y' in smoothed.__dict__:
             del smoothed.__dict__['y']

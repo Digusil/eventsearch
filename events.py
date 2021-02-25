@@ -60,47 +60,14 @@ class EventDataFrame(CoreEventDataFrame):
         }
 
         for signal_name in self.signal_dict:
+            event_numbers, peak_assumption_corr, ycorr, _ = self._detect_local_min_max(
+                signal_name=signal_name, event_numbers=event_numbers, neg_smoother=neg_smoother)
+
             signal = self.signal_dict[signal_name]
+
             smoothed_signal = signal.to_smoothed_signal(smoother=neg_smoother)
 
-            maximum_mask = np.logical_and(np.abs(smoothed_signal.sign_change_dydt) != 0, smoothed_signal.d2ydt2 < 0)
-            minimum_mask = np.logical_and(np.abs(smoothed_signal.sign_change_dydt) != 0, smoothed_signal.d2ydt2 > 0)
-            inflection_mask = np.logical_and(smoothed_signal.sign_change_d2ydt2 > 0, smoothed_signal.dydt < 0)
-
-            position_correction = []
-
-            for local_y, local_dydt_sign_change, local_d2ydt2 in zip(smoothed_signal.y,
-                                                                     smoothed_signal.sign_change_dydt,
-                                                                     smoothed_signal.d2ydt2):
-                if len(position_correction) == 0:
-                    position_correction.append(local_y)
-                elif local_dydt_sign_change < 0:
-                    position_correction.append(local_y)
-                else:
-                    position_correction.append(position_correction[-1])
-
-            position_correction = np.array(position_correction)
-
-            if event_numbers is None:
-                position_correction_delta = np.diff(position_correction) != 0
-                event_numbers = np.cumsum(np.concatenate(([0, ], position_correction_delta)))
-
-            peak_assumption = []
-
-            for local_y, local_dydt_sign_change, local_d2ydt2 in zip(smoothed_signal.y[::-1],
-                                                                     smoothed_signal.sign_change_dydt[::-1],
-                                                                     smoothed_signal.d2ydt2[::-1]):
-                if len(peak_assumption) == 0:
-                    peak_assumption.append(local_y)
-                elif local_dydt_sign_change > 0:
-                    peak_assumption.append(local_y)
-                else:
-                    peak_assumption.append(peak_assumption[-1])
-
-            peak_assumption = np.array(peak_assumption[::-1])
-
-            ycorr = smoothed_signal.y - position_correction
-            peak_assumption_corr = peak_assumption - position_correction
+            maximum_mask, minimum_mask, inflection_mask = self._get_min_max_masks(smoothed_signal)
 
             for event in range(int(np.nanmax(event_numbers))+1):
                 event_mask = event_numbers == event
@@ -163,6 +130,59 @@ class EventDataFrame(CoreEventDataFrame):
 
         return pd.DataFrame.from_dict(data_dict)
 
+    @staticmethod
+    def _get_min_max_masks(signal):
+        maximum_mask = np.logical_and(np.abs(signal.sign_change_dydt) != 0, signal.d2ydt2 < 0)
+        minimum_mask = np.logical_and(np.abs(signal.sign_change_dydt) != 0, signal.d2ydt2 > 0)
+        inflection_mask = np.logical_and(signal.sign_change_d2ydt2 > 0, signal.dydt < 0)
+
+        return maximum_mask, minimum_mask, inflection_mask
+
+    def _detect_local_min_max(
+            self,
+            signal_name,
+            event_numbers=None,
+            neg_smoother: Smoother = Smoother(window_len=31, window='hann')
+    ):
+        signal = self.signal_dict[signal_name]
+
+        smoothed_signal = signal.to_smoothed_signal(smoother=neg_smoother)
+
+        position_correction = []
+
+        for local_y, local_dydt_sign_change, local_d2ydt2 in zip(smoothed_signal.y,
+                                                                 smoothed_signal.sign_change_dydt,
+                                                                 smoothed_signal.d2ydt2):
+            if len(position_correction) == 0:
+                position_correction.append(local_y)
+            elif local_dydt_sign_change < 0:
+                position_correction.append(local_y)
+            else:
+                position_correction.append(position_correction[-1])
+        position_correction = np.array(position_correction)
+
+        if event_numbers is None:
+            position_correction_delta = np.diff(position_correction) != 0
+            event_numbers = np.cumsum(np.concatenate(([0, ], position_correction_delta)))
+
+        peak_assumption = []
+
+        for local_y, local_dydt_sign_change, local_d2ydt2 in zip(smoothed_signal.y[::-1],
+                                                                 smoothed_signal.sign_change_dydt[::-1],
+                                                                 smoothed_signal.d2ydt2[::-1]):
+            if len(peak_assumption) == 0:
+                peak_assumption.append(local_y)
+            elif local_dydt_sign_change > 0:
+                peak_assumption.append(local_y)
+            else:
+                peak_assumption.append(peak_assumption[-1])
+
+        peak_assumption = np.array(peak_assumption[::-1])
+        ycorr = smoothed_signal.y - position_correction
+        peak_assumption_corr = peak_assumption - position_correction
+
+        return event_numbers, peak_assumption_corr, ycorr, position_correction
+
     def check_search_settings(
             self,
             neg_threshold: float,
@@ -202,11 +222,21 @@ class EventDataFrame(CoreEventDataFrame):
 
         return event_df
 
-    def search_breaks(self, signal, *args, **kwargs):
-        self.add_signal(signal, signal.name)
+    def search_breaks(self, signal=None, *args, **kwargs):
+        if isinstance(signal, CoreSingleSignal):
+            self.add_signal(signal, signal.name)
 
-        for event in search_breaks(signal, *args, **kwargs):
-            self.data = self.data.append(event, ignore_index=True)
+            for event in search_breaks(signal, *args, **kwargs):
+                self.data = self.data.append(event, ignore_index=True)
+
+        elif isinstance(signal, str):
+            for event in search_breaks(self.signal_dict[signal], *args, **kwargs):
+                self.data = self.data.append(event, ignore_index=True)
+
+        else:
+            for signal in self.signal_dict.values():
+                for event in search_breaks(signal, *args, **kwargs):
+                    self.data = self.data.append(event, ignore_index=True)
 
     def export_event(self, event_id, event_type: type = Event):
         data = self.data.iloc[event_id]

@@ -19,7 +19,7 @@ def get_signal_names():
 
 
 class CoreSingleSignal(CachedObject, IdentifedObject):
-    def __init__(self, t: np.ndarray = None, y: np.ndarray = None, name: str = None, **kwargs):
+    def __init__(self, t: np.ndarray = None, y: np.ndarray = None, name: str = None, listed=True, **kwargs):
         super(CoreSingleSignal, self).__init__(**kwargs)
 
         self._y = None
@@ -41,11 +41,12 @@ class CoreSingleSignal(CachedObject, IdentifedObject):
         else:
             self._name = name
 
-        if self._name in __signal_names__:
-            if __signal_names__[self._name] != self.get_hash():
-                raise NameError('“{}“ already registered as different Signal!'.format(self._name))
-        else:
-            __signal_names__.update({self._name: self.get_hash()})
+        if listed:
+            if self._name in __signal_names__:
+                if __signal_names__[self._name] != self.get_hash():
+                    raise NameError('“{}“ already registered as different Signal!'.format(self._name))
+            else:
+                __signal_names__.update({self._name: self.get_hash()})
 
     def get_hash(self):
         m = md5()
