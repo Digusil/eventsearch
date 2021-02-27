@@ -19,6 +19,7 @@ def search_breaks(
         pos_threshold: float,
         slope_threshold_linear_point: float = 2e3,
         min_peak_threshold: float = 3,
+        min_length: float = 1e-3,
         neg_smoother: Smoother = Smoother(window_len=31, window='hann'),
         pos_smoother: Smoother = Smoother(window_len=31, window='boxcar'),
         event_class: type = CoreEvent,
@@ -80,6 +81,8 @@ def search_breaks(
     mask3 = mask3 * np.arange(mask3.shape[0])
     mask3 = mask3[mask3 > 0]
 
+    fs = np.median(1/np.diff(data.t))
+
     if len(mask3) > 0:
         pos = np.where(np.diff(mask3) > 1)[0] + 1
         break_list = np.array(list(mask_list_generator(np.split(mask3, pos), data, neg_smoothed_signal, pos_smoothed_signal)))
@@ -94,7 +97,7 @@ def search_breaks(
         for break_data in break_list:
             zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id = break_data
 
-            if end_id - 30 >= start_id:
+            if end_id - min_length*fs >= start_id:
                 # event = event_class(data, t_start=data.t[zero_grad_start_id], t_end=data.t[zero_grad_end_id])
 
                 start_y0, start_point = analyse_slopes(
