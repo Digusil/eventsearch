@@ -69,66 +69,67 @@ class EventDataFrame(CoreEventDataFrame):
 
             maximum_mask, minimum_mask, inflection_mask = self._get_min_max_masks(smoothed_signal)
 
-            for event in range(int(np.nanmax(event_numbers))+1):
-                event_mask = event_numbers == event
-                try:
-                    event_pos = np.where(event_mask)[0][0]
-                except IndexError:
-                    event_pos = np.NaN
-
-                evaluation_mask = np.logical_and(event_mask, inflection_mask)
-
-                data_dict['signal_name'].append(signal_name)
-
-                if np.any(evaluation_mask) and np.any(np.logical_and(event_mask, minimum_mask)):
-                    evaluation_pos = np.argmin(smoothed_signal.dydt[evaluation_mask])
-
+            if not np.isnan(np.nanmax(event_numbers)):
+                for event in range(int(np.nanmax(event_numbers))+1):
+                    event_mask = event_numbers == event
                     try:
-                        start_pos = np.where(np.logical_and(event_mask, maximum_mask))[0][0]
+                        event_pos = np.where(event_mask)[0][0]
                     except IndexError:
-                        start_pos = np.where(maximum_mask[:np.where(event_mask)[0][0]])[0][-1]
+                        event_pos = np.NaN
 
-                    start_t = smoothed_signal.t[start_pos]
-                    start_y = smoothed_signal.y[start_pos]
+                    evaluation_mask = np.logical_and(event_mask, inflection_mask)
 
-                    data_dict['start_t'].append(start_t)
-                    data_dict['start_y'].append(start_y)
+                    data_dict['signal_name'].append(signal_name)
 
-                    data_dict['peak_ly'].append(peak_assumption_corr[evaluation_mask][evaluation_pos])
-                    data_dict['peak_lt'].append(
-                        smoothed_signal.t[
-                            np.where(np.logical_and(event_mask, minimum_mask))[0][-1]
-                        ] - start_t
-                    )
+                    if np.any(evaluation_mask) and np.any(np.logical_and(event_mask, minimum_mask)):
+                        evaluation_pos = np.argmin(smoothed_signal.dydt[evaluation_mask])
 
-                    data_dict['inflections'].append(np.sum(evaluation_mask))
+                        try:
+                            start_pos = np.where(np.logical_and(event_mask, maximum_mask))[0][0]
+                        except IndexError:
+                            start_pos = np.where(maximum_mask[:np.where(event_mask)[0][0]])[0][-1]
 
-                    data_dict['slope'].append(np.min(smoothed_signal.dydt[evaluation_mask]))
-                    data_dict['slope_lt'].append(
-                        smoothed_signal.t[np.where(evaluation_mask)[0][evaluation_pos]] - start_t
-                    )
-                    data_dict['slope_ly'].append(ycorr[evaluation_mask][evaluation_pos])
+                        start_t = smoothed_signal.t[start_pos]
+                        start_y = smoothed_signal.y[start_pos]
 
-                    min_pos = np.argmin(signal.y[event_mask])
-                    global_min_t = signal.t[min_pos+event_pos]
-                    global_min_y = signal.y[min_pos+event_pos]
+                        data_dict['start_t'].append(start_t)
+                        data_dict['start_y'].append(start_y)
 
-                    data_dict['min_lt'].append(global_min_t - start_t)
-                    data_dict['min_ly'].append(global_min_y - start_y)
+                        data_dict['peak_ly'].append(peak_assumption_corr[evaluation_mask][evaluation_pos])
+                        data_dict['peak_lt'].append(
+                            smoothed_signal.t[
+                                np.where(np.logical_and(event_mask, minimum_mask))[0][-1]
+                            ] - start_t
+                        )
 
-                else:
-                    data_dict['start_t'].append(np.NaN)
-                    data_dict['start_y'].append(np.NaN)
-                    data_dict['inflections'].append(np.NaN)
-                    data_dict['slope'].append(np.NaN)
-                    data_dict['slope_lt'].append(np.NaN)
-                    data_dict['slope_ly'].append(np.NaN)
-                    data_dict['peak_lt'].append(np.NaN)
-                    data_dict['peak_ly'].append(np.NaN)
-                    data_dict['min_lt'].append(np.NaN)
-                    data_dict['min_ly'].append(np.NaN)
+                        data_dict['inflections'].append(np.sum(evaluation_mask))
 
-        return pd.DataFrame.from_dict(data_dict)
+                        data_dict['slope'].append(np.min(smoothed_signal.dydt[evaluation_mask]))
+                        data_dict['slope_lt'].append(
+                            smoothed_signal.t[np.where(evaluation_mask)[0][evaluation_pos]] - start_t
+                        )
+                        data_dict['slope_ly'].append(ycorr[evaluation_mask][evaluation_pos])
+
+                        min_pos = np.argmin(signal.y[event_mask])
+                        global_min_t = signal.t[min_pos+event_pos]
+                        global_min_y = signal.y[min_pos+event_pos]
+
+                        data_dict['min_lt'].append(global_min_t - start_t)
+                        data_dict['min_ly'].append(global_min_y - start_y)
+
+                    else:
+                        data_dict['start_t'].append(np.NaN)
+                        data_dict['start_y'].append(np.NaN)
+                        data_dict['inflections'].append(np.NaN)
+                        data_dict['slope'].append(np.NaN)
+                        data_dict['slope_lt'].append(np.NaN)
+                        data_dict['slope_ly'].append(np.NaN)
+                        data_dict['peak_lt'].append(np.NaN)
+                        data_dict['peak_ly'].append(np.NaN)
+                        data_dict['min_lt'].append(np.NaN)
+                        data_dict['min_ly'].append(np.NaN)
+
+            return pd.DataFrame.from_dict(data_dict)
 
     @staticmethod
     def _get_min_max_masks(signal):
