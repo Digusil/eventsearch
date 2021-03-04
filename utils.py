@@ -160,7 +160,7 @@ def integral_trapz(t, y, **kwargs):
     return np.sum((y[1:] + y[:-1])*np.diff(t)/2)
 
 
-def assign_elements(x, y, metric='euclidean', indeces_output=False, feature_cost=None, *args, **kwargs):
+def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost=None, *args, **kwargs):
     x = np.array(x)
     y = np.array(y)
 
@@ -184,7 +184,7 @@ def assign_elements(x, y, metric='euclidean', indeces_output=False, feature_cost
 
     row_ind, col_ind = linear_sum_assignment(dists)
 
-    if indeces_output:
+    if indices_output:
         return row_ind, col_ind
     else:
         if dists.shape[0] == dists.shape[1]:
