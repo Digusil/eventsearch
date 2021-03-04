@@ -5,8 +5,6 @@ import scipy.signal as sig
 from scipy.spatial import distance
 from scipy.optimize import linear_sum_assignment
 
-from sklearn.preprocessing import RobustScaler
-
 
 def kernel_helper(window_len=11, window='hann', **kwargs):
     window_list = [
@@ -160,7 +158,7 @@ def integral_trapz(t, y, **kwargs):
     return np.sum((y[1:] + y[:-1])*np.diff(t)/2)
 
 
-def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost=None, *args, **kwargs):
+def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost=None, threshold=np.inf, *args, **kwargs):
     x = np.array(x)
     y = np.array(y)
 
@@ -170,19 +168,19 @@ def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost
     if len(y.shape) == 1:
         y = y[:, None]
 
-    all_data = np.vstack((x, y))
-
-    transformer = RobustScaler().fit(all_data)
-    X = transformer.transform(x)
-    Y = transformer.transform(y)
-
     if feature_cost is not None:
-        X *= feature_cost
-        Y *= feature_cost
+        x *= feature_cost
+        y *= feature_cost
 
-    dists = distance.cdist(X, Y, *args, metric=metric, **kwargs)
+    dists = distance.cdist(x, y, *args, metric=metric, **kwargs)
 
-    row_ind, col_ind = linear_sum_assignment(dists)
+    row_mask = np.any(dists <= threshold, axis=1)
+    col_mask = np.any(dists <= threshold, axis=0)
+
+    row_ind_masked, col_ind_masked = linear_sum_assignment(dists[row_mask, :][:, col_mask])
+
+    row_ind = np.where(row_mask)[0][row_ind_masked]
+    col_ind = np.where(col_mask)[0][col_ind_masked]
 
     if indices_output:
         return row_ind, col_ind
