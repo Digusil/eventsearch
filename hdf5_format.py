@@ -13,8 +13,8 @@ from json import JSONDecodeError
 import numpy as np
 import pandas as pd
 
-from eventsearch.core import CoreEvent, CoreEventList
-from eventsearch.saving_utils import ask_to_proceed_with_overwrite
+from .core import CoreEvent, CoreEventList
+from ._saving_utils import ask_to_proceed_with_overwrite
 
 __version__ = snaa_saving_version = "0.1.0"
 
@@ -123,7 +123,7 @@ def load_eventlist_from_hdf5(filepath, use_class: type = None):
 
     try:
         if use_class is None:
-            from events import EventList
+            from snaa.events import EventList
             from snaa.core import CoreEventList
 
             cls = locals()[load_attributes(f, 'class_name')]

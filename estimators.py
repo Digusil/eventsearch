@@ -2,7 +2,7 @@ import numpy as np
 from scipy import stats
 from cached_property import cached_property
 
-from eventsearch.core_utils import CachedObject, IdentifedObject
+from .core_utils import CachedObject, IdentifedObject
 
 
 def nadaraya_watson_estimator(x, x_data, y_data, h):

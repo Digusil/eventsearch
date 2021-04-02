@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 
-from eventsearch.core import CoreEvent, CoreSingleSignal, CoreEventList, CoreEventDataFrame
-from eventsearch.event_utils import search_breaks
-from eventsearch.hdf5_format import save_event_to_hdf5, load_event_from_hdf5, save_eventlist_to_hdf5, load_eventlist_from_hdf5, \
+from .core import CoreEvent, CoreSingleSignal, CoreEventList, CoreEventDataFrame
+from .event_utils import search_breaks
+from .hdf5_format import save_event_to_hdf5, load_event_from_hdf5, save_eventlist_to_hdf5, load_eventlist_from_hdf5, \
     save_eventdataframe_to_hdf5, load_eventdataframe_from_hdf5
-from eventsearch.utils import Smoother
+from .utils import Smoother
 
 
 class Event(CoreEvent):

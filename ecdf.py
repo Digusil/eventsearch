@@ -214,6 +214,7 @@ class ECDF(StepFunction):
 
         return zalpha * se * np.sqrt(self.n)
 
+
 def monotone_fn_inverter(fn, x, vectorized=True, **keywords):
     """
     Given a monotone function fn (no checking is done to verify monotonicity)

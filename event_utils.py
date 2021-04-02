@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 
-from eventsearch.core import CoreSingleSignal, CoreEvent
-from eventsearch.signals import SmoothedSignal
-from eventsearch.utils import Smoother, integral_trapz
+from .core import CoreSingleSignal, CoreEvent
+from .signals import SmoothedSignal
+from .utils import Smoother, integral_trapz
 
 
 def virtual_start(x_start, slope_start, y_base, y_start):
@@ -382,7 +382,7 @@ def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, 
 
 
 def event_generator(data: CoreSingleSignal, event_list: pd.DataFrame, func: callable, **kwargs) -> tuple:
-    # todo: check if needed any more, because of functionality o EventList class
+    # todo: check if needed any more, because of functionality of EventList class
 
     for ide, event in event_list.iterrows():
         event_data = data[np.where(np.logical_and(event.start_time <= data.t, data.t <= event.end_time))]

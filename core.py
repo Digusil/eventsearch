@@ -6,8 +6,8 @@ from cached_property import cached_property
 
 from hashlib import md5
 
-from eventsearch.utils import integral_trapz
-from eventsearch.core_utils import CachedObject, IdentifedObject
+from .utils import integral_trapz
+from .core_utils import CachedObject, IdentifedObject
 
 
 global __signal_names__
