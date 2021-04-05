@@ -10,16 +10,39 @@ from .utils import integral_trapz
 from .core_utils import CachedObject, IdentifedObject
 
 
+# register signal name dictionary
 global __signal_names__
 __signal_names__ = {}
 
 
 def get_signal_names():
+    """
+    Access global signal name dictionary.
+
+    Returns
+    -------
+    global singal_name: dict
+    """
     return globals()['__signal_names__']
 
 
 class CoreSingleSignal(CachedObject, IdentifedObject):
     def __init__(self, t: np.ndarray = None, y: np.ndarray = None, name: str = None, listed=True, **kwargs):
+        """
+        Core class for single signals.
+
+        Parameters
+        ----------
+        t: ndarray
+            time points
+        y: ndarray
+            values corresponding to the time points t
+        name: str or None, optional
+            name for the signal that will registrated in the global singal name dictionary if the parameter "listed" is
+            true. If None, a unique generic singal name will be generated.
+        listed: bool,
+            If True the singal will be registrated in the global singal name dictionary. Default ist True.
+        """
         super(CoreSingleSignal, self).__init__(**kwargs)
 
         self._y = None
@@ -29,17 +52,13 @@ class CoreSingleSignal(CachedObject, IdentifedObject):
         self.register_cached_property('d2ydt2')
         self.register_cached_property('integral')
         self.register_cached_property('sign_change_y')
-        self.register_cached_property('sign_change_y_local')
         self.register_cached_property('sign_change_dydt')
         self.register_cached_property('sign_change_d2ydt2')
 
         self.set_y(y)
         self.set_t(t)
 
-        if name is None:
-            self._name = '{}_{}'.format(self.__class__.__name__, self.__identifier__)
-        else:
-            self._name = name
+        self._name = self._gen_name(name)
 
         if listed:
             if self._name in __signal_names__:
@@ -48,7 +67,32 @@ class CoreSingleSignal(CachedObject, IdentifedObject):
             else:
                 __signal_names__.update({self._name: self.get_hash()})
 
+    def _gen_name(self, name: str = None):
+        """
+        Generate objact name.
+
+        Parameters
+        ----------
+        name: str or None
+            Custom object name.
+
+        Returns
+        -------
+            generated object name: str
+        """
+        if name is None:
+            return '{}_{}'.format(self.__class__.__name__, self.__identifier__)
+        else:
+            return name
+
     def get_hash(self):
+        """
+        Get object hash value.
+
+        Returns
+        -------
+        hash value: str
+        """
         m = md5()
         m.update("{0:s}-{1:s}-{2:s}-{3:s}".format(
             str(self._t),
@@ -59,80 +103,201 @@ class CoreSingleSignal(CachedObject, IdentifedObject):
 
         return m.hexdigest()
 
-    def set_y(self, y: np.ndarray) -> None:
+    def set_y(self, y: np.ndarray):
+        """
+        Set signal values.
+
+        Parameters
+        ----------
+        y: ndarray
+
+        """
         self.del_cache()
         self._y = y
 
     @property
     def y(self):
+        """
+        Returns
+        -------
+        signal values: ndarray
+        """
         return self._y
 
     @y.setter
     def y(self, value):
+        """
+        Set signal values.
+
+        Parameters
+        ----------
+        value: ndarray
+
+        """
         self.set_y(value)
 
-    def set_t(self, t: np.ndarray) -> None:
+    def set_t(self, t: np.ndarray):
+        """
+        Set signal time points.
+
+        Parameters
+        ----------
+        t: ndarray
+
+        """
         self.del_cache()
         self._t = t
 
     @property
     def t(self):
+        """
+        Returns
+        -------
+        singal time points: ndarray
+        """
         return self._t
 
     @t.setter
     def t(self, value):
+        """
+        Set signal time points.
+
+        Parameters
+        ----------
+        t: ndarray
+
+        """
         self.set_t(value)
 
     @property
     def name(self):
+        """
+        Returns
+        -------
+        singal name: str
+        """
         return self._name
 
     @property
     def data(self):
+        """
+        Returns
+        -------
+        data array [t, y]: ndarray
+        """
         return np.array((self.t, self.y)).T
 
-    def _time_derivate(self, data: np.ndarray) -> np.ndarray:
+    def _time_derivate(self, data: np.ndarray):
+        """
+        Calculate simple time derivate for data array.
+
+        Parameters
+        ----------
+        data: ndarray
+
+        Returns
+        -------
+        time derivate: ndarray
+        """
         return np.array([0] + list(np.diff(data) / np.diff(self.t)))
 
     @cached_property
     def dydt(self):
+        """
+        Calculate dy/dt. The values will be cached.
+
+        Returns
+        -------
+        dy/dt: ndarray
+        """
         return self._time_derivate(self.y)
 
     @cached_property
     def d2ydt2(self):
+        """
+        Calculate d^2y/dt^2. The values will be cached.
+
+        Returns
+        -------
+        d^2y/dt^2: ndarray
+        """
         return self._time_derivate(self.dydt)
 
     @cached_property
     def integral(self):
+        """
+        Calculate the intragral of the singal. The values will be cached.
+
+        Returns
+        -------
+        integral: float
+        """
         return integral_trapz(self.t, self.y)
 
     @cached_property
     def sign_change_y(self):
+        """
+        Trigger sign change of y. The values will be cached.
+
+        Returns
+        -------
+        sign change trigger: ndarray
+        """
         return np.array([0] + list(np.diff(np.sign(self.y))))
 
     @cached_property
-    def sign_change_y_local(self):
-        return np.array([0] + list(np.diff(np.sign(self.y_local))))
-
-    @cached_property
     def sign_change_dydt(self):
+        """
+        Trigger sign change of dy/dt. The values will be cached.
+
+        Returns
+        -------
+        sign change trigger: ndarray
+        """
         return np.array([0] + list(np.diff(np.sign(self.dydt))))
 
     @cached_property
     def sign_change_d2ydt2(self):
+        """
+        Trigger sign change of d^2y/dt^2. The values will be cached.
+
+        Returns
+        -------
+        sign change trigger: ndarray
+        """
         return np.array([0] + list(np.diff(np.sign(self.d2ydt2))))
 
     def __getitem__(self, item):
         config = self.get_config()
         config['name'] = None
         config['identifier'] = None
+        config['listed'] = False
 
         return self.__class__(y=self.y[item], t=self.t[item], **config)
 
-    def export2csv(self, fname, delimiter='\t', header='time\tsignal', **kwargs):
-        np.savetxt(fname, np.array([self.t, self.y]).T, delimiter=delimiter, header=header, **kwargs)
+    def export2csv(self, fname, delimiter='\t', header=['time', 'signal'], **kwargs):
+        """
+        Export data to csv.
+
+        Parameters
+        ----------
+        fname: str
+            File name of the created file.
+        delimiter: str, optional
+            Used delimiter. Default '\t'.
+        header: list, optional
+            List of column names.
+        """
+        np.savetxt(fname, np.array([self.t, self.y]).T, delimiter=delimiter, header=delimiter.join(header), **kwargs)
 
     def get_config(self):
+        """
+        Get config of the object for serialization.
+
+        Returns
+        -------
+        object config: dict
+        """
         base_config_ident = IdentifedObject.get_config(self)
         base_config_cached = CachedObject.get_config(self)
 
@@ -145,7 +310,7 @@ class CoreSingleSignal(CachedObject, IdentifedObject):
 
     def __del__(self):
         if self.name in  __signal_names__:
-            del __signal_names__[self.name]
+            del get_signal_names()[self.name]
 
 
 class CoreEvent(CoreSingleSignal):
@@ -157,7 +322,7 @@ class CoreEvent(CoreSingleSignal):
 
         self.register_cached_property('t_local')
         self.register_cached_property('y_local')
-        self.register_cached_property('integral')
+        self.register_cached_property('sign_change_y_local')
 
         self._t_start = copy(t_start)
         self._t_end = copy(t_end)
@@ -241,6 +406,10 @@ class CoreEvent(CoreSingleSignal):
     @cached_property
     def y_local(self):
         return self.y - self.reference_value
+
+    @cached_property
+    def sign_change_y_local(self):
+        return np.array([0] + list(np.diff(np.sign(self.y_local))))
 
     @property
     def event_data(self):
@@ -442,6 +611,10 @@ class CoreEventList(CachedObject, IdentifedObject):
 
 class CoreEventDataFrame(IdentifedObject):
     def __init__(self, *args, **kwargs):
+        """
+        Event dataframe core class. The instances of this class holds the signals and a pandas dataframe with the event
+        data.
+        """
         super(CoreEventDataFrame, self).__init__(*args, **kwargs)
 
         self._signal_dict = {}
@@ -449,13 +622,37 @@ class CoreEventDataFrame(IdentifedObject):
 
     @property
     def signal_dict(self):
+        """
+        Returns
+        -------
+        Dicitonary with the corresponding signals: dict
+        """
         return self._signal_dict
 
     def add_signal(self, signal: CoreSingleSignal, name: str = None):
+        """
+        Add signal to instace.
+
+        Parameters
+        ----------
+        signal: CoreSingleSignal
+            Signal that will be added to the instance.
+        name: str or None, optional
+            Name of the signal that will be added. If None, the name stored in the signal instace will be used. Degautl
+            None.
+        """
         if name is None:
-            name = signal.name  # 'signal_{:d}'.format(len(list(self.signal_dict.keys())))
+            name = signal.name
 
         self._signal_dict.update({name: signal})
 
     def remove_signal(self, name: str):
+        """
+        Remove singal from instace.
+
+        Parameters
+        ----------
+        name: str
+            Name of the signal that will be removed.
+        """
         del self._signal_dict[name]

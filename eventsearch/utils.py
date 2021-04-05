@@ -7,6 +7,20 @@ from scipy.optimize import linear_sum_assignment
 
 
 def kernel_helper(window_len=11, window='hann', **kwargs):
+    """
+    Helper function to call kernel from string.
+
+    Parameters
+    ----------
+    window_len: int
+        window lenght
+    window: str
+        window name
+
+    Returns
+    -------
+    window values: ndarray
+    """
     window_list = [
         'barthann',
         'bartlett',
@@ -38,38 +52,29 @@ def kernel_helper(window_len=11, window='hann', **kwargs):
 
 
 def smooth(x, window_len=11, window='hann', convolve_mode='same', **kwargs):
-    """smooth the data using a window with requested size.
-
-    This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by introducing reflected copies of the signal
-    (with the window size) in both ends so that transient parts are minimized
-    in the begining and end part of the output signal.
-
-    input:
-        x: the input signal
-        window_len: the dimension of the smooth window; should be an odd integer
-        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-            flat window will produce a moving average smooth.
-
-    output:
-        the smoothed signal
-
-    example:
-
-    t=linspace(-2,2,0.1)
-    x=sin(t)+randn(len(t))*0.1
-    y=smooth(x)
-
-    see also:
-
-    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
-    scipy.signal.lfilter
-
-    TODO: the window parameter could be the window itself if an array instead of a string
-    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
     """
+    Smoothing scalar array by kernel.
 
-    # todo: DepricationWarning hanning will be replaced by hann
+    Parameters
+    ----------
+    x: ndarray
+        array that will be smoothed
+    window_len: int
+        kernel window length
+    window: str
+        window name
+    convolve_mode: {‘full’, ‘valid’, ‘same’}, optional
+        mode of the convolution. Possible values:
+            - 'full'
+            - 'same'
+            - 'valid'
+            Default 'same'
+            see: https://numpy.org/doc/stable/reference/generated/numpy.convolve.html
+
+    Returns
+    -------
+    smothed data: ndarray
+    """
 
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
@@ -89,6 +94,25 @@ def smooth(x, window_len=11, window='hann', convolve_mode='same', **kwargs):
 
 class Smoother(object):
     def __init__(self, window_len=11, window='hann', convolve_mode='same', signal_smoothing: bool = True):
+        """
+        Smoother class for smoothing signals.
+
+        Parameters
+        ----------
+        window_len: int
+            kernel window length
+        window: str
+            window name
+        convolve_mode: {‘full’, ‘valid’, ‘same’}, optional
+            mode of the convolution. Possible values:
+                - 'full'
+                - 'same'
+                - 'valid'
+                Default 'same'
+                see: https://numpy.org/doc/stable/reference/generated/numpy.convolve.html
+        signal_smoothing: bool, optional
+            If True the signal will be smoothed. Default True.
+        """
         self._window_len = None
         self._signal_smoothing = None
 
@@ -99,6 +123,18 @@ class Smoother(object):
         self.convolve_mode = convolve_mode
 
     def smooth(self, data, **kwargs):
+        """
+        smooth data
+
+        Parameters
+        ----------
+        data: ndarray
+            data that will be smoothed
+
+        Returns
+        -------
+        smoothed data: ndarray
+        """
         if self.signal_smoothing:
             return smooth(data, **self.smooth_config, **kwargs)
         else:
@@ -106,27 +142,60 @@ class Smoother(object):
 
     @property
     def signal_smoothing(self):
+        """
+        Returns
+        -------
+        will the signal be smoothed: bool
+        """
         return self._signal_smoothing
 
     @signal_smoothing.setter
     def signal_smoothing(self, value):
+        """
+        Set signal smoothing parameter.
+
+        Parameters
+        ----------
+        value: bool
+            If True the signal will be smoothed. Default True.
+        """
         self._signal_smoothing = value
 
     @property
     def window_len(self):
-       if self.signal_smoothing:
+        """
+        Returns
+        -------
+        window length: int
+        """
+        if self.signal_smoothing:
            return self._window_len
-       else:
+        else:
            return 1
 
     @window_len.setter
     def window_len(self, value):
+        """
+        Set window length.
+
+        Parameters
+        ----------
+        value: int
+            window length
+        """
         assert value >= 3
 
         self._window_len = value
 
     @property
     def smooth_config(self):
+        """
+        Get smoothing config.
+
+        Returns
+        -------
+        config: dict
+        """
         return {
             'window': self.window,
             'window_len': self.window_len,
@@ -134,6 +203,13 @@ class Smoother(object):
         }
 
     def get_config(self):
+        """
+        Get config of the object for serialization.
+
+        Returns
+        -------
+        object config: dict
+        """
         config = {
             'signal_smoothing': self.signal_smoothing
         }
@@ -142,10 +218,28 @@ class Smoother(object):
 
     @classmethod
     def from_config(cls, config):
+        """
+        Restore object from serialized config dictionary.
+
+        Returns
+        -------
+        object: Smoother
+        """
         return cls(**config)
 
 
-def get_kde(data: np.array) -> gaussian_kde:
+def get_kde(data: np.array):
+    """
+    Calculate gaussian kernel density estimation.
+
+    Parameters
+    ----------
+    data: ndarray
+
+    Returns
+    -------
+    kde: ndarray
+    """
     try:
         kde = gaussian_kde(data)
     except (ValueError, np.linalg.LinAlgError):
@@ -155,10 +249,54 @@ def get_kde(data: np.array) -> gaussian_kde:
 
 
 def integral_trapz(t, y, **kwargs):
+    """
+    Approximate integral by trapez rule.
+
+    Parameters
+    ----------
+    t: ndarray
+        time points
+    y: ndarray
+        singal values
+
+    Returns
+    -------
+    integral: float
+    """
     return np.sum((y[1:] + y[:-1])*np.diff(t)/2)
 
 
 def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost=None, threshold=np.inf, *args, **kwargs):
+    """
+    Assign elements by value.
+
+    Parameters
+    ----------
+    x: ndarray
+        value arrays of set 1.
+    y ndarray
+        value arrays of set 2.
+    metric: str, optional
+        Used metric for distance calculation. Default 'euclidean'. See
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html
+    indices_output: bool, optional
+        if True, only return indeces. Default False.
+    feature_cost: list or None, optional
+        list of costs for the different features to scale them before disntace calculation.
+    threshold: float, optional
+        maximum valid threshold for assignen. If an object has no parnert with a smaller distance, the object will not
+        be assigned to an other object. Defualt Inf.
+
+    Returns
+    -------
+    if indeces_output:
+        x indeces: ndarray
+        y indeces: ndarray
+    else:
+        assigned elements: ndarray
+            [x(i_x), y(i_y)]
+        not assigned elements: ndarray
+    """
     x = np.array(x)
     y = np.array(y)
 

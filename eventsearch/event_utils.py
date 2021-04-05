@@ -10,6 +10,25 @@ from .utils import Smoother, integral_trapz
 
 
 def virtual_start(x_start, slope_start, y_base, y_start):
+    """
+    Calculate virtual start position. The trigger point will be projected to the base value by the slope at the trigger
+    position.
+
+    Parameters
+    ----------
+    x_start: float
+        trigger position
+    slope_start: float
+        slope at trigger point
+    y_base: float
+        base value of the virtual start point
+    y_start: flaot
+        trigger value
+
+    Returns
+    -------
+    virtual start poristion: float
+    """
     return (y_base - y_start) / slope_start + x_start
 
 
@@ -21,16 +40,73 @@ def search_breaks(
         min_peak_threshold: float = 3,
         min_length: float = 1e-3,
         neg_smoother: Smoother = Smoother(window_len=31, window='hann'),
-        pos_smoother: Smoother = Smoother(window_len=31, window='boxcar'),
+        pos_smoother: Smoother = Smoother(window_len=31, window='hann'),
         event_class: type = CoreEvent,
         custom_data:dict = {},
         **kwargs
 ):
+    """
+    Search breaks algorithm. Creates a generator.
+
+    Parameters
+    ----------
+    data: SingleSignal
+        signle that will be analyssed
+    neg_threshold: float
+        threshold for the negative slope trigger (start trigger)
+    pos_threshold: flaot
+        threshold for the positive slope trigger (end trigger)
+    slope_threshold_linear_point: float, optional
+        slope threshold for inflection trigger. Default 2000.
+    min_peak_threshold: float, optional
+        min. peak amplidute threshold. Default 3.0
+    min_length: float
+        min. event lenght threshold. Default 0.001
+    neg_smoother: Smoother, optional
+        smoother for start trigger. Default Smoother(window_len=31, window='hann').
+    pos_smoother: Smoother, optional
+        smootehr for end trigger. Default Smoother(window_len=31, window='hann').
+    event_class: type, optional
+        class of the returned events. Default CoreEvent.
+    custom_data: dict, optional
+        Add cosutm data to event. Default {}.
+
+    Returns
+    -------
+    event generator: class (event_class)
+    """
 
     def mask_list_generator(mask_list, raw, neg_smoothed, pos_smoothed):
-        # y: raw
-        # dydt: neg_smoothed
-        # sign_change: neg_smoothed
+        """
+        Generator for event detection.
+
+        Parameters
+        ----------
+        mask_list: list
+            list of event masks
+        raw: SingleSignal
+            signal data
+        neg_smoothed: SmoothedSignal
+            start trigger signal
+        pos_smoothed:  SmoothedSignal
+            end trigger signal
+
+        Returns
+        -------
+        yields tuple:
+            zero_grad_start_id: int
+                position of the first zero gradient before the start trigger point
+            start_id: int
+                start position
+            n_peaks: int
+                count zero gradient occurence in event time window
+            peak_id: int
+                peak position
+            end_id: int
+                end position
+            zero_grad_end_id:
+                position of the first zero gradient after the end trigger point
+        """
         for mask in mask_list:
             try:
                 x = np.r_[mask[0] - 1, mask]
@@ -39,8 +115,6 @@ def search_breaks(
 
             start_id = x[np.argmax(raw.y[x])]
             min_id = np.argmin(raw.y[x])
-
-            # d2ydt2 = np.array([0] + list(np.diff(dydt) / np.diff(t)))
 
             pos = np.where(np.diff(1.0*(neg_smoothed.dydt[x[min_id]:] > pos_threshold)) < 0)[0]
 
@@ -61,7 +135,6 @@ def search_breaks(
 
             yield zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id
 
-    #smoother = Smoother(window_len=window_length, signal_smoothing=signal_smoothing)
 
     if True: # np.median(data.y) > 0:
         neg_smoothed_signal = data.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_'+data.name)
@@ -243,6 +316,34 @@ def search_breaks(
 
 
 def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 0):
+    """
+    Analyses slopes to linearize the rising and peak section.
+
+    Parameters
+    ----------
+    signal: SingleSignal
+        signal data
+    id_start: int
+        start position of the event
+    id_end: int
+        end postion of the event
+    direction: str
+        case of analysis:
+            - 'neg': start peak plateau
+            - 'pos': end peak plateau
+            - 'start': event start
+    threshold: float
+        slope threshold for inflection trigger
+
+    Returns
+    -------
+    linearizaiton points: tuple
+        y0: float
+            base value
+        inflection_point: float
+            position
+
+    """
     t = signal.t[id_start:id_end]
     y = signal.y[id_start:id_end]
     dydt = signal.dydt[id_start:id_end]
@@ -271,7 +372,7 @@ def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 
 
         y0 = y[0]
     else:
-        raise ValueError("dirction have to be 'pos', 'neg' or 'start' not {}".format(direction))
+        raise ValueError("dirction have to be 'pos', 'neg' or 'start'; not {}".format(direction))
 
     inflection_points = np.where(
         np.logical_and(
@@ -302,7 +403,29 @@ def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 
     return y0, inflection_point
 
 
-def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iterations: int = 3, **kwargs) -> tuple:
+def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iterations: int = 3, **kwargs):
+    """
+    Simple capacitor behavior analysis based on filtering and linear fitting in the phase domain. Only usable when the
+    data is clean. Noisy or uncertain behavior have to be fitted with "refine_capacitor_behavior".
+
+    Parameters
+    ----------
+    data: SingleSignal
+        signal data
+    cutoff: float, optional
+        cutoff value for value filtering. Default 0.9.
+    iterations: int
+        number of iterations. Default 3.
+
+    Returns
+    -------
+    ymax: float
+        theoretical settling value
+    tau: float
+        time constant
+    porpotion: float
+        proportion of survied data points
+    """
     pos = np.median(data.y) > 0
 
     if pos:
@@ -343,6 +466,27 @@ def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iter
 
 
 def get_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, ymax_name='ymax', tau_name='tau', **kwargs):
+    """
+    Cut out capacitor behavior of the event.
+
+    Parameters
+    ----------
+    data: SingleSignal
+        signal data
+    event_data: DataFrame
+        event data
+    ymax_name: str, optional
+        name of the settling value column. Default 'ymax'.
+    tau_name: str, optional
+        name of the time constant column. Default 'tau'.
+
+    Returns
+    -------
+    t: ndarray
+        time points
+    y: ndarray
+        signal values
+    """
     ymax = event_data[ymax_name]
     t_peak = event_data.peak_time
     tau = event_data[tau_name]
@@ -358,6 +502,25 @@ def get_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, yma
 
 
 def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, **kwargs):
+    """
+    Fit expnential settling function by minimizing L2 distance.
+
+    Parameters
+    ----------
+    data: SingleSignal
+        signal data
+    event_data: DataFrame
+        event data
+
+    Returns
+    -------
+    x: list
+        optimized parameters
+    fun: float
+        result of function evaluation with parameters x
+    status: int
+        optimization quit status
+    """
     ymax = event_data.ymax if event_data.ymax is not np.NaN else np.max(data.y)
     t_peak = event_data.peak_time
     tau = event_data.tau if event_data.tau is not np.NaN else 0
@@ -383,6 +546,22 @@ def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, 
 
 def event_generator(data: CoreSingleSignal, event_list: pd.DataFrame, func: callable, **kwargs) -> tuple:
     # todo: check if needed any more, because of functionality of EventList class
+    """
+    Generator to map function on event dataframe.
+
+    Parameters
+    ----------
+    data: SingleSignal
+        signal data
+    event_list: DataFrame
+        event data
+    func: callable
+        function that has to be mapped
+
+    Returns
+    -------
+    evaluation of func
+    """
 
     for ide, event in event_list.iterrows():
         event_data = data[np.where(np.logical_and(event.start_time <= data.t, data.t <= event.end_time))]
@@ -391,6 +570,22 @@ def event_generator(data: CoreSingleSignal, event_list: pd.DataFrame, func: call
 
 
 def simple_interpolation(x, y, x_inter):
+    """
+    simple linear interpolation
+
+    Parameters
+    ----------
+    x: ndarray
+        position data
+    y: ndarray
+        value data
+    x_inter: float
+        evaluation point
+
+    Returns
+    -------
+    inerpolation value on position x: float
+    """
     if not (len(x) == 2 and len(y) == 2):
         raise ValueError('x and y have to a length of 2!')
 
@@ -404,6 +599,22 @@ def simple_interpolation(x, y, x_inter):
 
 
 def find_partial_rising_time(x, y, threshold):
+    """
+    Appriximate rising time by simple interpolate position.
+
+    Parameters
+    ----------
+    x: ndarray
+        position data
+    y: ndarray
+        value data
+    threshold: float
+        rising threshold
+
+    Returns
+    -------
+    rising time: float
+    """
     if threshold > y[0]:
         mask = y > threshold
     elif threshold < y[0]:

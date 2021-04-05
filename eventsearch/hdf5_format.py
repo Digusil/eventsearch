@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 
 from .core import CoreEvent, CoreEventList
-from ._saving_utils import ask_to_proceed_with_overwrite
+from .saving_utils import ask_to_proceed_with_overwrite
 
-__version__ = snaa_saving_version = "0.1.0"
+__version__ = eventsearch_saving_version = "0.1.0"
 
 
 # pylint: disable=g-import-not-at-top
@@ -28,7 +28,7 @@ except ImportError:
 # pylint: enable=g-import-not-at-top
 
 
-def get_json_type(obj):
+def get_json_type(obj): # from tensorflow
     """Serializes any object to a JSON-serializable structure.
     Arguments:
       obj: the object to serialize
@@ -64,6 +64,23 @@ def get_json_type(obj):
 
 
 def handle_filepath_saving(filepath, overwrite=True):
+    """
+    Open hdf5 file and return object.
+
+    Parameters
+    ----------
+    filepath: str or h5py.file
+        path / filename / file
+    overwrite: boor, optinal
+        If True, an existing file will be overitten. Default True.
+
+    Returns
+    -------
+    f: h5py.File or h5py.Group
+        h5py object
+    new file opended: bool
+        If True, a new file is opend.
+    """
     if h5py is None:
         raise ImportError('`save_model` requires h5py.')
 
@@ -84,6 +101,21 @@ def handle_filepath_saving(filepath, overwrite=True):
 
 
 def handle_filepath_loading(filepath):
+    """
+    Handle data loading from hdf5 file.
+
+    Parameters
+    ----------
+    filepath: str or h5py.file
+        path / filename / file
+
+    Returns
+    -------
+    f: h5py.File or h5py.Group
+        h5py object
+    new file opended: bool
+        If True, a new file is opend.
+    """
     if h5py is None:
         raise ImportError('`load_model` requires h5py.')
     opened_new_file = not isinstance(filepath, (h5py.File, h5py.Group))
@@ -95,13 +127,25 @@ def handle_filepath_loading(filepath):
 
 
 def save_eventlist_to_hdf5(event_list: CoreEventList, filepath, overwrite=True):
-    from snaa import __version__ as snaa_version  # pylint: disable=g-import-not-at-top
+    """
+    Save EventList object in hdf5 file.
+
+    Parameters
+    ----------
+    event_list: EventList
+        Object that will be saved
+    filepath: str or h5py.file
+        path / filename / file
+    overwrite: boor, optinal
+        If True, an existing file will be overitten. Default True.
+    """
+    from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
     f, opened_new_file = handle_filepath_saving(filepath, overwrite)
 
     try:
-        save_attributes(f, 'snaa_version', snaa_version)
-        save_attributes(f, 'snaa_saving_version', snaa_saving_version)
+        save_attributes(f, 'eventsearch_version', eventsearch_version)
+        save_attributes(f, 'eventsearch_saving_version', eventsearch_saving_version)
 
         save_attributes(f, 'class_name', event_list.__class__.__name__)
         save_attributes(f, 'config', event_list.get_config())
@@ -119,12 +163,26 @@ def save_eventlist_to_hdf5(event_list: CoreEventList, filepath, overwrite=True):
 
 
 def load_eventlist_from_hdf5(filepath, use_class: type = None):
+    """
+    Load EventList object from hdf5 file.
+
+    Parameters
+    ----------
+    filepath: str or h5py.file
+        path / filename / file
+    use_class: type or None, optional
+        Create object with specific type. If None, the original type of the object will be used. Default None.
+
+    Returns
+    -------
+    evnet list: use_class
+    """
     f, opened_new_file = handle_filepath_loading(filepath)
 
     try:
         if use_class is None:
-            from snaa.events import EventList
-            from snaa.core import CoreEventList
+            from eventsearch.events import EventList
+            from eventsearch.core import CoreEventList
 
             cls = locals()[load_attributes(f, 'class_name')]
         elif use_class.__name__ == load_attributes(f, 'class_name'):
@@ -149,13 +207,25 @@ def load_eventlist_from_hdf5(filepath, use_class: type = None):
 
 
 def save_event_to_hdf5(event: CoreEvent, filepath, overwrite=True):
-    from snaa import __version__ as snaa_version  # pylint: disable=g-import-not-at-top
+    """
+    Save Event object in hdf5 file.
+
+    Parameters
+    ----------
+    event_list: Event
+        Object that will be saved.
+    filepath: str or h5py.file
+        path / filename / file
+    overwrite: boor, optinal
+        If True, an existing file will be overitten. Default True.
+    """
+    from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
     f, opened_new_file = handle_filepath_saving(filepath, overwrite)
 
     try:
-        save_attributes(f, 'snaa_version', snaa_version)
-        save_attributes(f, 'snaa_saving_version', snaa_saving_version)
+        save_attributes(f, 'eventsearch_version', eventsearch_version)
+        save_attributes(f, 'eventsearch_saving_version', eventsearch_saving_version)
 
         save_attributes(f, 'class_name', event.__class__.__name__)
         save_attributes(f, 'config', event.get_config())
@@ -177,6 +247,20 @@ def save_event_to_hdf5(event: CoreEvent, filepath, overwrite=True):
 
 
 def load_event_from_hdf5(filepath: str, use_class: type = None):
+    """
+    Load Event object from hdf5 file.
+
+    Parameters
+    ----------
+    filepath: str or h5py.file
+        path / filename / file
+    use_class: type or None, optional
+        Create object with specific type. If None, the original type of the object will be used. Default None.
+
+    Returns
+    -------
+    evnet: use_class
+    """
     f, opened_new_file = handle_filepath_loading(filepath)
 
     try:
@@ -215,13 +299,25 @@ def load_event_from_hdf5(filepath: str, use_class: type = None):
 
 
 def save_signal_to_hdf5(signal, filepath, overwrite=True):
-    from snaa import __version__ as snaa_version  # pylint: disable=g-import-not-at-top
+    """
+    Save SingleSignal object in hdf5 file.
+
+    Parameters
+    ----------
+    event_list: SingleSignal
+        Object that will be saved.
+    filepath: str or h5py.file
+        path / filename / file
+    overwrite: boor, optinal
+        If True, an existing file will be overitten. Default True.
+    """
+    from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
     f, opened_new_file = handle_filepath_saving(filepath, overwrite)
 
     try:
-        save_attributes(f, 'snaa_version', snaa_version)
-        save_attributes(f, 'snaa_saving_version', snaa_saving_version)
+        save_attributes(f, 'eventsearch_version', eventsearch_version)
+        save_attributes(f, 'eventsearch_saving_version', eventsearch_saving_version)
 
         save_attributes(f, 'class_name', signal.__class__.__name__)
         save_attributes(f, 'config', signal.get_config())
@@ -238,6 +334,20 @@ def save_signal_to_hdf5(signal, filepath, overwrite=True):
 
 
 def load_signal_from_hdf5(filepath: str, use_class: type = None):
+    """
+    Load Signal object from hdf5 file.
+
+    Parameters
+    ----------
+    filepath: str or h5py.file
+        path / filename / file
+    use_class: type or None, optional
+        Create object with specific type. If None, the original type of the object will be used. Default None.
+
+    Returns
+    -------
+    evnet: use_class
+    """
     f, opened_new_file = handle_filepath_loading(filepath)
 
     try:
@@ -266,13 +376,25 @@ def load_signal_from_hdf5(filepath: str, use_class: type = None):
 
 
 def save_eventdataframe_to_hdf5(event_data, filepath, overwrite=True):
-    from snaa import __version__ as snaa_version  # pylint: disable=g-import-not-at-top
+    """
+    Save EventDataFrame object in hdf5 file.
+
+    Parameters
+    ----------
+    event_list: EventDataFrame
+        Object that will be saved.
+    filepath: str or h5py.file
+        path / filename / file
+    overwrite: boor, optinal
+        If True, an existing file will be overitten. Default True.
+    """
+    from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
     f, opened_new_file = handle_filepath_saving(filepath, overwrite)
 
     try:
-        save_attributes(f, 'snaa_version', snaa_version)
-        save_attributes(f, 'snaa_saving_version', snaa_saving_version)
+        save_attributes(f, 'eventsearch_version', eventsearch_version)
+        save_attributes(f, 'eventsearch_saving_version', eventsearch_saving_version)
 
         save_attributes(f, 'class_name', event_data.__class__.__name__)
         save_attributes(f, 'config', event_data.get_config())
@@ -295,6 +417,20 @@ def save_eventdataframe_to_hdf5(event_data, filepath, overwrite=True):
 
 
 def load_eventdataframe_from_hdf5(filepath: str, use_class: type = None):
+    """
+    Load EventDataFrame object from hdf5 file.
+
+    Parameters
+    ----------
+    filepath: str or h5py.file
+        path / filename / file
+    use_class: type or None, optional
+        Create object with specific type. If None, the original type of the object will be used. Default None.
+
+    Returns
+    -------
+    evnet: use_class
+    """
     f, opened_new_file = handle_filepath_loading(filepath)
 
     try:
@@ -329,17 +465,21 @@ def load_eventdataframe_from_hdf5(filepath: str, use_class: type = None):
     return event_data
 
 
-def save_array_to_hdf_group(f, val, name):
-    param_dset = f.create_dataset(name, val.shape, dtype=val.dtype)
-
-    if not val.shape:
-        # scalar
-        param_dset[()] = val
-    else:
-        param_dset[:] = val
-
-
 def save_array_in_dataset(f, name, val, attrs=None):
+    """
+    Save array to hdf dataset.
+
+    Parameters
+    ----------
+    f: h5py.File or h5py.Group
+        File or Group for storing the data.
+    name: str
+        Group name for staring the data.
+    val: ndarray
+        data
+    attrs: dict
+        Add additional attributes.
+    """
     if isinstance(val, str):
         param_dset = f.create_group(name)
         save_attributes(param_dset, 'data', val)
@@ -363,6 +503,20 @@ def save_array_in_dataset(f, name, val, attrs=None):
 
 
 def load_array_from_dataset(f, name):
+    """
+    Load array to hdf dataset.
+
+    Parameters
+    ----------
+    f: h5py.File or h5py.Group
+        File or Group of the data.
+    name: str
+        Group name of the data.
+
+    Returns
+    -------
+    array
+    """
     if load_attributes(f[name], 'type') == 'str':
         return load_attributes(f[name], 'data')
     if f[name].len() > 1:
@@ -372,11 +526,39 @@ def load_array_from_dataset(f, name):
 
 
 def save_array_list_in_dataset(f, name, val, **kwargs):
+    """
+    Save list of arrays to hdf dataset.
+
+    Parameters
+    ----------
+    f: h5py.File or h5py.Group
+        File or Group for storing the data.
+    name: str
+        Group name for staring the data.
+    val: list of ndarrays
+        data
+    attrs: dict
+        Add additional attributes.
+    """
     for index, element in enumerate(val):
         save_array_in_dataset(f, "{}_{}".format(name, index), element, **kwargs)
 
 
 def load_array_list_from_dataset(f, name):
+    """
+    Load list of arrays to hdf dataset.
+
+    Parameters
+    ----------
+    f: h5py.File or h5py.Group
+        File or Group of the data.
+    name: str
+        Group name of the data.
+
+    Returns
+    -------
+    list of array
+    """
     data = []
     index = 0
     while "{}_{}".format(name, index) in f:
@@ -387,6 +569,17 @@ def load_array_list_from_dataset(f, name):
 
 
 def save_attributes(f, name, data):
+    """
+    Save attributes in hdf5 object.
+
+    Parameters
+    ----------
+    f: h5py.File or h5py.Group
+        File or Group
+    name: str
+        attribute name
+    data: encodable data
+    """
     if isinstance(data, (dict, list, tuple)):
         f.attrs.update({name: json.dumps(data).encode('utf8')})
     else:
@@ -394,6 +587,20 @@ def save_attributes(f, name, data):
 
 
 def load_attributes(f, name):
+    """
+    Load attribute data from hdf5 object.
+
+    Parameters
+    ----------
+    f: h5py.File or h5py.Group
+        File or Group
+    name: str
+        attribute name
+
+    Returns
+    -------
+    data
+    """
     try:
         return json.loads(f.attrs.get(name))
     except (JSONDecodeError, TypeError):
@@ -401,39 +608,39 @@ def load_attributes(f, name):
 
 
 def save_data_into_hdf5_group_attributes(group, name, data):
-  """Saves attributes (data) of the specified name into the HDF5 group.
-  This method deals with an inherent problem of HDF5 file which is not
-  able to store data larger than HDF5_OBJECT_HEADER_LIMIT bytes.
-  Arguments:
-      group: A pointer to a HDF5 group.
-      name: A name of the attributes to save.
-      data: Attributes data to store.
-  Raises:
-    RuntimeError: If any single attribute is too large to be saved.
-  """
-  # Check that no item in `data` is larger than `HDF5_OBJECT_HEADER_LIMIT`
-  # because in that case even chunking the array would not make the saving
-  # possible.
-  bad_attributes = [x for x in data if len(x) > HDF5_OBJECT_HEADER_LIMIT]
+    """Saves attributes (data) of the specified name into the HDF5 group.
+    This method deals with an inherent problem of HDF5 file which is not
+    able to store data larger than HDF5_OBJECT_HEADER_LIMIT bytes.
+    Arguments:
+        group: A pointer to a HDF5 group.
+        name: A name of the attributes to save.
+        data: Attributes data to store.
+    Raises:
+        RuntimeError: If any single attribute is too large to be saved.
+    """
+    # Check that no item in `data` is larger than `HDF5_OBJECT_HEADER_LIMIT`
+    # because in that case even chunking the array would not make the saving
+    # possible.
+    bad_attributes = [x for x in data if len(x) > HDF5_OBJECT_HEADER_LIMIT]
 
-  # Expecting this to never be true.
-  if bad_attributes:
-    raise RuntimeError('The following attributes cannot be saved to HDF5 '
-                       'file because they are larger than %d bytes: %s' %
-                       (HDF5_OBJECT_HEADER_LIMIT, ', '.join(bad_attributes)))
+    # Expecting this to never be true.
+    if bad_attributes:
+        raise RuntimeError('The following attributes cannot be saved to HDF5 '
+                           'file because they are larger than %d bytes: %s' %
+                           (HDF5_OBJECT_HEADER_LIMIT, ', '.join(bad_attributes)))
 
-  data_npy = np.asarray(data)
+    data_npy = np.asarray(data)
 
-  num_chunks = 1
-  chunked_data = np.array_split(data_npy, num_chunks)
-
-  # This will never loop forever thanks to the test above.
-  while any(x.nbytes > HDF5_OBJECT_HEADER_LIMIT for x in chunked_data):
-    num_chunks += 1
+    num_chunks = 1
     chunked_data = np.array_split(data_npy, num_chunks)
 
-  if num_chunks > 1:
-    for chunk_id, chunk_data in enumerate(chunked_data):
-      group.attrs['%s%d' % (name, chunk_id)] = chunk_data
-  else:
-    group.attrs[name] = data
+    # This will never loop forever thanks to the test above.
+    while any(x.nbytes > HDF5_OBJECT_HEADER_LIMIT for x in chunked_data):
+        num_chunks += 1
+        chunked_data = np.array_split(data_npy, num_chunks)
+
+    if num_chunks > 1:
+        for chunk_id, chunk_data in enumerate(chunked_data):
+            group.attrs['%s%d' % (name, chunk_id)] = chunk_data
+    else:
+        group.attrs[name] = data
