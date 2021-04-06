@@ -28,7 +28,7 @@ class TestCachedObject(unittest.TestCase):
 
         self.assertDictEqual({
             'default': [],
-        'CachedObject-container': ['_all_property_names']
+            'CachedObject-container': ['_all_property_names']
         }, test._cached_properties)
 
         test = self.TestClass(cached_properties={'test': ['test1', 'test2']})
@@ -98,7 +98,7 @@ class TestCachedObject(unittest.TestCase):
         }, test._cached_properties)
 
     def test_del_cache(self):
-        test = self.TestClass(a = 1, b = -1)
+        test = self.TestClass(a=1, b=-1)
         test.register_cached_property('b', 'test')
 
         self.assertEqual(1, test.a)
@@ -136,17 +136,18 @@ class TestCachedObject(unittest.TestCase):
         test2 = self.TestClass.from_config(test.get_config())
 
         self.assertDictEqual({
-            'cached_properties':{
+            'cached_properties': {
                 'default': [],
                 'CachedObject-container': ['_all_property_names'],
                 'test': []
             }
         }, test2.get_config())
 
+
 class TestIdentifedCachedObject(unittest.TestCase):
     class TestClass(IdentifedCachedObject):
-        def __init__(self, a=0, b=0, cached_properties=None):
-            super().__init__(cached_properties=cached_properties)
+        def __init__(self, a=0, b=0, cached_properties=None, **kwargs):
+            super().__init__(cached_properties=cached_properties, **kwargs)
 
             self._a = a
             self._b = b
@@ -172,6 +173,21 @@ class TestIdentifedCachedObject(unittest.TestCase):
 
         self.assertIn('cached_properties', test.get_config())
         self.assertEqual(test._cached_properties, test.get_config()['cached_properties'])
+
+    def test_set_config(self):
+        config = {
+            'creation_date': 'test-data',
+            'identifier': 'test-identifier',
+            'cached_properties': {
+                'default': ['test1'],
+                'CachedObject-container': ['_all_property_names'],
+                'test': ['test2', 'test3']
+            }
+        }
+
+        test = self.TestClass(**config)
+
+        self.assertEqual(test.get_config(), config)
 
 
 if __name__ == '__main__':

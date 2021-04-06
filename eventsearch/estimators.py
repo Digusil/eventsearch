@@ -2,7 +2,7 @@ import numpy as np
 from scipy import stats
 from cached_property import cached_property
 
-from .core_utils import CachedObject, IdentifedObject
+from .core_utils import IdentifedCachedObject
 
 
 def nadaraya_watson_estimator(x, x_data, y_data, h):
@@ -24,15 +24,16 @@ def nadaraya_watson_estimator(x, x_data, y_data, h):
     -------
     estimatated values: ndarray
     """
+
     def bandwidth_kernel(x, h, x_data):
-        return 1/h * 1/np.sqrt(2*np.pi) * np.exp(-(np.linalg.norm(x - x_data)/h)**2/2)
+        return 1 / h * 1 / np.sqrt(2 * np.pi) * np.exp(-(np.linalg.norm(x - x_data) / h) ** 2 / 2)
 
     return np.array(
         list(
             map(
                 lambda x:
-                    np.sum(y_data * bandwidth_kernel(x, h, x_data)) /
-                    np.sum(bandwidth_kernel(x, h, x_data)), x
+                np.sum(y_data * bandwidth_kernel(x, h, x_data)) /
+                np.sum(bandwidth_kernel(x, h, x_data)), x
             )
         )
     )
@@ -61,11 +62,11 @@ def non_parametric_variance_estimator(x, h, foo, x_test, y_test, **kwargs):
     """
     error_data = y_test - foo(x_test, **kwargs)
 
-    return nadaraya_watson_estimator(x, x_test, error_data**2, h)
+    return nadaraya_watson_estimator(x, x_test, error_data ** 2, h)
 
 
-class Estimator(CachedObject, IdentifedObject):
-    def __init__(self, features, targets, *args, data_seperation: dict = None, **kwargs):
+class Estimator(IdentifedCachedObject):
+    def __init__(self, features, targets, data_seperation: dict = None, **kwargs):
         """
         Estimator class.
 
@@ -79,7 +80,7 @@ class Estimator(CachedObject, IdentifedObject):
             Proportion or amount of samples in each data set. If None: {'train': 0.7, 'test': 0.3} that means 70% of the
              data in 'trian' set and 30% in the 'test' set. Default None.
         """
-        super(Estimator, self).__init__(*args, **kwargs)
+        super(Estimator, self).__init__(**kwargs)
         if data_seperation is None:
             self._data_distribution = {'train': 0.7, 'test': 0.3}
         else:
@@ -157,7 +158,7 @@ class Estimator(CachedObject, IdentifedObject):
         if value > 1:
             return np.floor(value).astype('int')
         else:
-            return np.floor(value*len(self.features)).astype('int')
+            return np.floor(value * len(self.features)).astype('int')
 
     @cached_property
     def _data_ids(self):
@@ -287,8 +288,8 @@ class NadarayaWatsonCore(Estimator):
         """
         features, targets = self._get_data(train_container)
 
-        return np.sum(targets * self._bandwidth_kernel(a_x, data_container=train_container)) \
-               / np.sum(self._bandwidth_kernel(a_x, data_container=train_container))
+        return np.sum(targets * self._bandwidth_kernel(a_x, data_container=train_container)) / np.sum(
+            self._bandwidth_kernel(a_x, data_container=train_container))
 
     def predict(self, x, train_container='train', **kwargs):
         """
@@ -521,12 +522,10 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
         standard error: float
         """
         n = len(self._data_ids['train'])
-        f = lambda x: self._density_foo(x)
-        variance = lambda x: self._variance_foo(x)
 
         kernel_parameter = 1 / (2 * np.sqrt(np.pi))
 
-        return np.sqrt(variance(a_x)*kernel_parameter/(n*self.h*f(a_x)))
+        return np.sqrt(self._variance_foo(a_x) * kernel_parameter / (n * self.h * self._density_foo(a_x)))
 
     def standard_error(self, x):
         """
@@ -566,7 +565,7 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
         -------
         distance: float
         """
-        z = stats.norm.ppf(1-alpha/2)
+        z = stats.norm.ppf(1 - alpha / 2)
 
         return z * self._standard_error_foo(a_x)
 
@@ -620,7 +619,3 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
         m = self.predict(x)
 
         return m - confidence_delta, m + confidence_delta
-
-
-
-

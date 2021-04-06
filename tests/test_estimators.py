@@ -7,8 +7,8 @@ from eventsearch.estimators import Estimator, NadarayaWatsonEstimator, NadarayaW
 
 class TestEstimator(unittest.TestCase):
     def test_creation(self):
-        x = np.array([np.arange(10), 1+np.arange(10)]).T
-        y = np.array(x[:, 0]**2 + x[:, 1]*2)
+        x = np.array([np.arange(10), 1 + np.arange(10)]).T
+        y = np.array(x[:, 0] ** 2 + x[:, 1] * 2)
 
         estimator = Estimator(features=x, targets=y)
 
@@ -31,14 +31,14 @@ class TestEstimator(unittest.TestCase):
         x = np.array([np.arange(10), 1 + np.arange(10)]).T
         y = np.array(x[:, 0] ** 2 + x[:, 1] * 2)
 
-        estimator = Estimator(features=x, targets=y, data_distribution={'a': 2, 'b':3})
+        estimator = Estimator(features=x, targets=y, data_seperation={'a': 2, 'b': 3})
 
         self.assertEqual(2, len(estimator._data_ids['a']))
         self.assertEqual(3, len(estimator._data_ids['b']))
 
         [self.assertNotIn(obj, estimator._data_ids['b']) for obj in estimator._data_ids['a']]
 
-        estimator = Estimator(features=x, targets=y, data_distribution={'a': 0.7, 'b': 0.3})
+        estimator = Estimator(features=x, targets=y, data_seperation={'a': 0.7, 'b': 0.3})
 
         self.assertEqual(7, len(estimator._data_ids['a']))
         self.assertEqual(3, len(estimator._data_ids['b']))
@@ -49,17 +49,17 @@ class TestEstimator(unittest.TestCase):
         x = np.array([np.arange(10), 1 + np.arange(10)]).T
         y = np.array(x[:, 0] ** 2 + x[:, 1] * 2)
 
-        estimator = Estimator(features=x, targets=y, data_distribution={'a': 2, 'b': 3})
+        estimator = Estimator(features=x, targets=y, data_seperation={'a': 2, 'b': 3})
 
         features, targets = estimator._get_data('a')
 
         np.testing.assert_array_equal([2, 2], features.shape)
-        np.testing.assert_array_equal([2,], targets.shape)
+        np.testing.assert_array_equal([2, ], targets.shape)
 
         features, targets = estimator._get_data('b')
 
         np.testing.assert_array_equal([3, 2], features.shape)
-        np.testing.assert_array_equal([3,], targets.shape)
+        np.testing.assert_array_equal([3, ], targets.shape)
 
 
 class TestNadarayaWatsonCore(unittest.TestCase):
@@ -102,7 +102,6 @@ class TestNadarayaWatsonEstimator(unittest.TestCase):
         estimator = NadarayaWatsonEstimator(features=x, targets=y, h=1, h_var=1)
 
         self.assertEqual(25, len(estimator.variance(np.ones(shape=(25, 2)))))
-
 
     def test_confidence_interval(self):
         x = np.array([np.arange(10), 1 + np.arange(10)]).T

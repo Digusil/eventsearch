@@ -6,7 +6,7 @@ import numpy as np
 
 from eventsearch.signals import SingleSignal
 from eventsearch.events import Event, EventList, EventDataFrame
-from eventsearch.tests.utils import TemporaryFolder
+from tests.utils import TemporaryFolder
 
 
 class TestEvent(unittest.TestCase):
@@ -192,6 +192,7 @@ class TestEventList(unittest.TestCase):
 
             self.assertEqual(event_list.data, event_list2.data)
 
+
 class TestEventDataframe(unittest.TestCase):
     def test_eveltdataframe_creation(self):
         event_df = EventDataFrame()
@@ -238,6 +239,6 @@ class TestEventDataframe(unittest.TestCase):
         self.assertEqual([signal.get_hash() for signal in list(event_df.signal_dict.values())],
                          [signal.get_hash() for signal in list(event_df2.signal_dict.values())])
 
-        
+
 if __name__ == '__main__':
     unittest.main()

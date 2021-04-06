@@ -28,13 +28,14 @@ class TestSimpleInterpolation(unittest.TestCase):
             y = [0, 1, 2]
             np.testing.assert_almost_equal([0.1, 0.9], simple_interpolation(x, y, [0.1, 0.9]))
 
+
 class TestFindPartialRisingTime(unittest.TestCase):
     def test_partial_rising_time(self):
         x = np.linspace(0, 10, 100)
         y = np.sin(x)
 
         np.testing.assert_almost_equal(np.arcsin(0.5), find_partial_rising_time(x, y, 0.5), decimal=2)
-        np.testing.assert_almost_equal(np.pi-np.arcsin(-0.5), find_partial_rising_time(x, y, -0.5), decimal=2)
+        np.testing.assert_almost_equal(np.pi - np.arcsin(-0.5), find_partial_rising_time(x, y, -0.5), decimal=2)
 
 
 if __name__ == '__main__':

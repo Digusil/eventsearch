@@ -7,8 +7,7 @@ from cached_property import cached_property
 from hashlib import md5
 
 from .utils import integral_trapz
-from .core_utils import CachedObject, IdentifedObject
-
+from .core_utils import IdentifedObject, IdentifedCachedObject
 
 # register signal name dictionary
 global __signal_names__
@@ -26,7 +25,7 @@ def get_signal_names():
     return globals()['__signal_names__']
 
 
-class CoreSingleSignal(CachedObject, IdentifedObject):
+class CoreSingleSignal(IdentifedCachedObject):
     def __init__(self, t: np.ndarray = None, y: np.ndarray = None, name: str = None, listed=True, **kwargs):
         """
         Core class for single signals.
@@ -298,23 +297,22 @@ class CoreSingleSignal(CachedObject, IdentifedObject):
         -------
         object config: dict
         """
-        base_config_ident = IdentifedObject.get_config(self)
-        base_config_cached = CachedObject.get_config(self)
+        base_config = super(CoreSingleSignal, self).get_config()
 
         config = {}
 
         return dict(
-            list(base_config_ident.items())
-            + list(base_config_cached.items())
+            list(base_config.items())
             + list(config.items()))
 
     def __del__(self):
-        if self.name in  __signal_names__:
+        if self.name in __signal_names__:
             del get_signal_names()[self.name]
 
 
 class CoreEvent(CoreSingleSignal):
-    def __init__(self, data: CoreSingleSignal = None, t_start: float = None, t_end: float = None, t_reference: float = None, y_reference: float = None, **kwargs):
+    def __init__(self, data: CoreSingleSignal = None, t_start: float = None, t_end: float = None,
+                 t_reference: float = None, y_reference: float = None, **kwargs):
         super(CoreEvent, self).__init__(**kwargs)
 
         self._t_reference = None
@@ -356,7 +354,7 @@ class CoreEvent(CoreSingleSignal):
             else:
                 id_end = np.where(data.t >= t_end)[0][0]
 
-            cut_signal = copy(data[id_start:id_end+1])
+            cut_signal = copy(data[id_start:id_end + 1])
 
             if t_reference is None:
                 t_reference = cut_signal.t[0]
@@ -370,7 +368,7 @@ class CoreEvent(CoreSingleSignal):
             self.set_t(copy(cut_signal.t))
             self.set_y(copy(cut_signal.y))
 
-            self._event_data = []   # have to be after data setting, because __setattr__
+            self._event_data = []  # have to be after data setting, because __setattr__
 
             self.reference_time = t_reference
             self.reference_value = y_reference if y_reference is not None else self.y[0]
@@ -422,8 +420,8 @@ class CoreEvent(CoreSingleSignal):
             return np.NaN
 
     def __setitem__(self, key, value):
-        if key in key in ['y', 't', 'dydt', 'd2ydt2', 'data', 'integral']:# \
-                #+ list(self._cached_properties.keys()):
+        if key in key in ['y', 't', 'dydt', 'd2ydt2', 'data', 'integral']:  # \
+            # + list(self._cached_properties.keys()):
             raise KeyError('{} is a predefined class element!'.format(key))
 
         if key not in self._event_data:
@@ -444,12 +442,12 @@ class CoreEvent(CoreSingleSignal):
                     yield cls.__dict__[name]
 
         if '_event_data' in self.__dict__:
-            if name not in self._event_data and name[0] != '_':     # hide keys starting with '_'
+            if name not in self._event_data and name[0] != '_':  # hide keys starting with '_'
                 self._event_data.append(name)
 
         possible_descriptors = list(check_descriptors(name))
         if len(possible_descriptors) > 0:
-                possible_descriptors[-1].__set__(self, value)
+            possible_descriptors[-1].__set__(self, value)
         else:
             self.__dict__[name] = value
 
@@ -470,14 +468,14 @@ class CoreEvent(CoreSingleSignal):
             delattr(self, name)
 
     def __contains__(self, key):
-        return key in self._event_data+self._event_descriptors
+        return key in self._event_data + self._event_descriptors
 
     def __len__(self):
         return len(self._t)
 
     @property
     def data(self):
-        return dict((key, getattr(self, key, np.NaN)) for key in self._event_data+self._event_descriptors)
+        return dict((key, getattr(self, key, np.NaN)) for key in self._event_data + self._event_descriptors)
 
     def to_Series(self):
         return pd.Series(self.data)
@@ -497,16 +495,14 @@ class CoreEvent(CoreSingleSignal):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-class CoreEventList(CachedObject, IdentifedObject):
+class CoreEventList(IdentifedCachedObject):
     def __init__(self, *args, **kwargs):
         super(CoreEventList, self).__init__(*args, **kwargs)
 
         self.register_cached_property('_event_data')
 
         self._event_list = []
-        #self._event_data = []
-
-    # todo: caching possible?
+        # self._event_data = []
 
     @cached_property
     def _event_data(self):

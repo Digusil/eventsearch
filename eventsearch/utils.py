@@ -41,8 +41,8 @@ def kernel_helper(window_len=11, window='hann', **kwargs):
         'tukey',
     ]
 
-    if not window in window_list:
-        raise(ValueError, "{:s} is not a valid window".format(window))
+    if window not in window_list:
+        raise (ValueError, "{:s} is not a valid window".format(window))
 
     # s = np.r_[x[window_len - 1:0:-1], x, x[-2:-window_len - 1:-1]]
     # print(len(s))
@@ -169,9 +169,9 @@ class Smoother(object):
         window length: int
         """
         if self.signal_smoothing:
-           return self._window_len
+            return self._window_len
         else:
-           return 1
+            return 1
 
     @window_len.setter
     def window_len(self, value):
@@ -263,10 +263,11 @@ def integral_trapz(t, y, **kwargs):
     -------
     integral: float
     """
-    return np.sum((y[1:] + y[:-1])*np.diff(t)/2)
+    return np.sum((y[1:] + y[:-1]) * np.diff(t) / 2)
 
 
-def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost=None, threshold=np.inf, *args, **kwargs):
+def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost=None, threshold=np.inf, *args,
+                    **kwargs):
     """
     Assign elements by value.
 
@@ -331,5 +332,3 @@ def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost
             rest = np.delete(y, col_ind, axis=0)
 
         return np.hstack((x[row_ind], y[col_ind])), rest
-
-

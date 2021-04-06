@@ -3,8 +3,8 @@ import unittest
 import numpy as np
 
 from eventsearch.signals import SingleSignal, SmoothedSignal
-from eventsearch.tests.utils import TemporaryFolder
 from eventsearch.utils import Smoother
+from tests.utils import TemporaryFolder
 
 
 class TestSingleSingal(unittest.TestCase):

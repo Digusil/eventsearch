@@ -1,18 +1,3 @@
-#!/usr/bin/python3
-
-'''
-project:    snaa
-filename:	core_utils
-author:		pi
-date:		2020-03-08
-version:	
-
-description:
-
-CHANGE LOG:
-
-'''
-
 from copy import copy
 from logging import warning
 from hashlib import md5
@@ -27,7 +12,7 @@ from cached_property import cached_property
 
 class IdentifedObject(object):
     def __init__(self, creation_date: str = None, identifier: str = None, **kwargs) -> None:
-        super(IdentifedObject, self).__init__(**kwargs)
+        super(IdentifedObject, self).__init__()
 
         if creation_date:
             self.__creation_date__ = creation_date
@@ -58,7 +43,7 @@ class IdentifedObject(object):
 
 class CachedObject(object):
     def __init__(self, cached_properties: dict = None, **kwargs) -> None:
-        super(CachedObject, self).__init__(**kwargs)
+        super(CachedObject, self).__init__()
 
         if cached_properties is None:
             cached_properties = {'default': [], "CachedObject-container": ["_all_property_names"]}
@@ -77,7 +62,7 @@ class CachedObject(object):
                 if prop in self.__dict__:
                     del self.__dict__[prop]
 
-        if container is None or container is 'all':
+        if container is None or container == 'all':
             for con in self._cached_properties:
                 del_cache_from_container(con)
         else:
@@ -167,7 +152,8 @@ class CachedObject(object):
 
 class IdentifedCachedObject(IdentifedObject, CachedObject):
     def __init__(self, *args, **kwargs):
-        super(IdentifedCachedObject, self).__init__(*args, **kwargs)
+        IdentifedObject.__init__(self, *args, **kwargs)
+        CachedObject.__init__(self, *args, **kwargs)
 
     def get_config(self) -> dict:
         base_config_ident = IdentifedObject.get_config(self)

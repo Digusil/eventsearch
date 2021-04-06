@@ -43,7 +43,8 @@ class SingleSignal(CoreSingleSignal):
         if 'name' in kwargs:
             smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), listed=listed, **kwargs)
         else:
-            smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), name='smoothed_' + self.name, listed=listed, **kwargs)
+            smoothed = SmoothedSignal(t=copy(self.t), y=copy(self.y), name='smoothed_' + self.name, listed=listed,
+                                      **kwargs)
 
         if 'y' in smoothed.__dict__:
             del smoothed.__dict__['y']
@@ -97,7 +98,8 @@ class SmoothedSignal(SingleSignal):
         listed: bool, optional
             If True the singal will be registrated in the global singal name dictionary. Default ist True.
         """
-        super(SmoothedSignal, self).__init__(*args, name=name, **kwargs)
+        kwargs['name'] = self._gen_name(kwargs['name'])
+        super(SmoothedSignal, self).__init__(*args, **kwargs)
 
         self._smoother = None
 
@@ -171,5 +173,4 @@ class SmoothedSignal(SingleSignal):
         base_config = super(SmoothedSignal, self).get_config()
         config = {'smoother': self.smoother.get_config()}
 
-        return dict(list(base_config.items())+ list(config.items()))
-
+        return dict(list(base_config.items()) + list(config.items()))

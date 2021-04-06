@@ -42,7 +42,7 @@ def search_breaks(
         neg_smoother: Smoother = Smoother(window_len=31, window='hann'),
         pos_smoother: Smoother = Smoother(window_len=31, window='hann'),
         event_class: type = CoreEvent,
-        custom_data:dict = {},
+        custom_data: dict = {},
         **kwargs
 ):
     """
@@ -116,10 +116,10 @@ def search_breaks(
             start_id = x[np.argmax(raw.y[x])]
             min_id = np.argmin(raw.y[x])
 
-            pos = np.where(np.diff(1.0*(neg_smoothed.dydt[x[min_id]:] > pos_threshold)) < 0)[0]
+            pos = np.where(np.diff(1.0 * (neg_smoothed.dydt[x[min_id]:] > pos_threshold)) < 0)[0]
 
             end_id = int(pos[0] + x[min_id]) if len(pos) > 0 else len(raw.y) - 1
-            if end_id-start_id > 1:
+            if end_id - start_id > 1:
                 peak_id = np.argmin(raw.y[start_id:end_id]) + start_id
             else:
                 peak_id = start_id
@@ -135,30 +135,32 @@ def search_breaks(
 
             yield zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id
 
-
-    if True: # np.median(data.y) > 0:
-        neg_smoothed_signal = data.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_'+data.name)
-        pos_smoothed_signal = data.to_smoothed_signal(smoother=pos_smoother, name='smoothed_pos_'+data.name)
+    if True:  # np.median(data.y) > 0:
+        neg_smoothed_signal = data.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_' + data.name)
+        pos_smoothed_signal = data.to_smoothed_signal(smoother=pos_smoother, name='smoothed_pos_' + data.name)
         y_sign = 1
     else:
-        neg_smoothed_signal = SmoothedSignal(t=data.t, y=-data.y, smoother=neg_smoother, name='smoothed_neg_'+data.name)
-        pos_smoothed_signal = SmoothedSignal(t=data.t, y=-data.y, smoother=pos_smoother, name='smoothed_pos_'+data.name)
+        neg_smoothed_signal = SmoothedSignal(t=data.t, y=-data.y, smoother=neg_smoother,
+                                             name='smoothed_neg_' + data.name)
+        pos_smoothed_signal = SmoothedSignal(t=data.t, y=-data.y, smoother=pos_smoother,
+                                             name='smoothed_pos_' + data.name)
         y_sign = -1
 
     sign_change = np.array([0] + list(np.diff(np.sign(neg_smoothed_signal.dydt))))
 
     kurtosis_change = 1.0 * (neg_smoothed_signal.d2ydt2 > 0)
-    kurtosis_trigger = np.array([0] + list(np.diff(kurtosis_change) >0))
+    kurtosis_trigger = np.array([0] + list(np.diff(kurtosis_change) > 0))
 
     mask3 = neg_smoothed_signal.dydt <= neg_threshold
     mask3 = mask3 * np.arange(mask3.shape[0])
     mask3 = mask3[mask3 > 0]
 
-    fs = np.median(1/np.diff(data.t))
+    fs = np.median(1 / np.diff(data.t))
 
     if len(mask3) > 0:
         pos = np.where(np.diff(mask3) > 1)[0] + 1
-        break_list = np.array(list(mask_list_generator(np.split(mask3, pos), data, neg_smoothed_signal, pos_smoothed_signal)))
+        break_list = np.array(
+            list(mask_list_generator(np.split(mask3, pos), data, neg_smoothed_signal, pos_smoothed_signal)))
 
         n = break_list.shape[0]
     else:
@@ -170,9 +172,7 @@ def search_breaks(
         for break_data in break_list:
             zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id = break_data
 
-            if end_id - min_length*fs >= start_id:
-                # event = event_class(data, t_start=data.t[zero_grad_start_id], t_end=data.t[zero_grad_end_id])
-
+            if end_id - min_length * fs >= start_id:
                 start_y0, start_point = analyse_slopes(
                     neg_smoothed_signal,
                     id_start=zero_grad_start_id,
@@ -181,15 +181,8 @@ def search_breaks(
                     threshold=slope_threshold_linear_point
                 )
 
-                # event.reference_time = virtual_start(
-                #     data.t[start_id],
-                #     y_sign*neg_smoothed_signal.dydt[start_id],
-                #     y_sign*neg_smoothed_signal.y[zero_grad_start_id],
-                #     y_sign*neg_smoothed_signal.y[start_id]
-                # )
-
                 reference_time = copy(start_point)
-                reference_value = y_sign*neg_smoothed_signal.y[zero_grad_start_id]
+                reference_value = y_sign * neg_smoothed_signal.y[zero_grad_start_id]
 
                 t = data.t[zero_grad_start_id:zero_grad_end_id]
                 y = data.y[zero_grad_start_id:zero_grad_end_id]
@@ -235,8 +228,8 @@ def search_breaks(
                         event['half_rising_value']
                     )
 
-                    event['rising_20_value'] = 0.2*(event['peak_value']-event['zero_grad_start_value']) \
-                                               + event['zero_grad_start_value']
+                    event['rising_20_value'] = 0.2 * (event['peak_value'] - event['zero_grad_start_value']) + event[
+                        'zero_grad_start_value']
 
                     event['rising_20_time'] = find_partial_rising_time(
                         t_local,
@@ -244,8 +237,8 @@ def search_breaks(
                         event['rising_20_value']
                     )
 
-                    event['rising_80_value'] = 0.8 * (event['peak_value'] - event['zero_grad_start_value']) \
-                                               + event['zero_grad_start_value']
+                    event['rising_80_value'] = 0.8 * (event['peak_value'] - event['zero_grad_start_value']) + event[
+                        'zero_grad_start_value']
 
                     event['rising_80_time'] = find_partial_rising_time(
                         t_local,
@@ -283,10 +276,11 @@ def search_breaks(
 
                     if previous_event is not None:
                         event['previous_event_reference_period'] = event.reference_time - previous_event.reference_time
-                        event['previous_event_time_gap'] = event.previous_event_reference_period - previous_event.zero_grad_end_time
+                        event['previous_event_time_gap'] = \
+                            event.previous_event_reference_period - previous_event.zero_grad_end_time
 
-                        event['intersection_problem'] = True if (event.peak_time + event.reference_time) \
-                                                             - (previous_event.end_time + previous_event.reference_time) <= 0 else False
+                        event['intersection_problem'] = True if (event.peak_time + event.reference_time) - (
+                                previous_event.end_time + previous_event.reference_time) <= 0 else False
                         event['overlapping'] = True if event.previous_event_time_gap < 0 else False
 
                         if event['intersection_problem']:
@@ -382,9 +376,8 @@ def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 
     )[0]
 
     inflection_points = inflection_points[
-        np.logical_and(start_id < inflection_points,  inflection_points < end_id)
+        np.logical_and(start_id < inflection_points, inflection_points < end_id)
     ]
-
 
     if inflection_points.size > 0:
         inflection_point = virtual_start(
@@ -393,7 +386,7 @@ def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 
             y0, y[inflection_points[list_id]]
         )
     else:
-        list_id = -(list_id +1)
+        list_id = -(list_id + 1)
         inflection_point = virtual_start(
             t[list_id],
             dydt[list_id],
@@ -445,7 +438,7 @@ def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iter
 
             counter = 0
 
-            while np.sum(local_mask)/len(local_mask) < 0.1 and counter < 200:
+            while np.sum(local_mask) / len(local_mask) < 0.1 and counter < 200:
                 cutoff -= 0.01
                 counter += 1
 
@@ -460,12 +453,13 @@ def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iter
     else:
         ymax = theta[0] / theta[1]
 
-    tau = -1/theta[1]
+    tau = -1 / theta[1]
 
-    return ymax, tau, np.sum(local_mask)/len(local_mask)
+    return ymax, tau, np.sum(local_mask) / len(local_mask)
 
 
-def get_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, ymax_name='ymax', tau_name='tau', **kwargs):
+def get_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, ymax_name='ymax', tau_name='tau',
+                           **kwargs):
     """
     Cut out capacitor behavior of the event.
 
@@ -498,7 +492,7 @@ def get_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, yma
     if ymax is np.NaN or tau is np.NaN:
         return np.NaN, np.NaN
     else:
-        return t, ymax - (ymax - y0)*np.exp(-(t-t_peak)/tau)
+        return t, ymax - (ymax - y0) * np.exp(-(t - t_peak) / tau)
 
 
 def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, **kwargs):
@@ -521,6 +515,13 @@ def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, 
     status: int
         optimization quit status
     """
+
+    def hyp(ymax, tau):
+        return ymax - (ymax - y0) * np.exp(-(t - t_peak) / tau)
+
+    def loss(par):
+        return np.mean((hyp(*par) - y) ** 2)
+
     ymax = event_data.ymax if event_data.ymax is not np.NaN else np.max(data.y)
     t_peak = event_data.peak_time
     tau = event_data.tau if event_data.tau is not np.NaN else 0
@@ -530,10 +531,6 @@ def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, 
     t = data.t_local[data.t_local >= t_peak]
 
     y = data.y[data.t >= t_peak]
-
-    hyp = lambda ymax, tau: ymax - (ymax - y0)*np.exp(-(t-t_peak)/tau)
-
-    loss = lambda par: np.mean((hyp(*par) - y) ** 2)
 
     res = minimize(loss, x0=[ymax, tau], method='Nelder-Mead')
 
@@ -545,7 +542,6 @@ def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, 
 
 
 def event_generator(data: CoreSingleSignal, event_list: pd.DataFrame, func: callable, **kwargs) -> tuple:
-    # todo: check if needed any more, because of functionality of EventList class
     """
     Generator to map function on event dataframe.
 
@@ -595,7 +591,7 @@ def simple_interpolation(x, y, x_inter):
     x = np.array(x)
     y = np.array(y)
 
-    return np.diff(y)/np.diff(x)*(x_inter - x[0]) +y[0]
+    return np.diff(y) / np.diff(x) * (x_inter - x[0]) + y[0]
 
 
 def find_partial_rising_time(x, y, threshold):
@@ -623,6 +619,6 @@ def find_partial_rising_time(x, y, threshold):
         return x[0]
 
     tmp = mask * np.arange(len(mask))
-    first_index = np.min(tmp[mask > 0])#np.where(mask)[0][0]
+    first_index = np.min(tmp[mask > 0])  # np.where(mask)[0][0]
 
-    return simple_interpolation(y[[first_index-1, first_index]], x[[first_index-1, first_index]], threshold)[0]
+    return simple_interpolation(y[[first_index - 1, first_index]], x[[first_index - 1, first_index]], threshold)[0]

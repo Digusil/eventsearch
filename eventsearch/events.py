@@ -9,7 +9,8 @@ from .utils import Smoother
 
 
 class Event(CoreEvent):
-    def __init__(self, data: CoreSingleSignal = None, t_start: float = None, t_end: float = None, t_reference: float = None, **kwargs):
+    def __init__(self, data: CoreSingleSignal = None, t_start: float = None, t_end: float = None,
+                 t_reference: float = None, **kwargs):
         """
         Event class
 
@@ -92,7 +93,6 @@ class EventList(CoreEventList):
         """
         return load_eventlist_from_hdf5(filepath, use_class=cls)
 
-
     def search_breaks(self, *args, **kwargs):
         """
         Search events.
@@ -118,7 +118,7 @@ class EventList(CoreEventList):
 
 
 class EventDataFrame(CoreEventDataFrame):
-    def __init__(self, *args, **kwargs):#
+    def __init__(self, *args, **kwargs):  #
         """
         Event dataframe class. The instances of this class holds the signals and a pandas dataframe with the event
         data.
@@ -154,7 +154,7 @@ class EventDataFrame(CoreEventDataFrame):
             'peak_lt': [],
             'peak_ly': [],
             'min_lt': [],
-            'min_ly':[],
+            'min_ly': [],
             'signal_name': []
         }
 
@@ -169,7 +169,7 @@ class EventDataFrame(CoreEventDataFrame):
             maximum_mask, minimum_mask, inflection_mask = self._get_min_max_masks(smoothed_signal)
 
             if not np.isnan(np.nanmax(event_numbers)):
-                for event in range(int(np.nanmax(event_numbers))+1):
+                for event in range(int(np.nanmax(event_numbers)) + 1):
                     event_mask = event_numbers == event
                     try:
                         event_pos = np.where(event_mask)[0][0]
@@ -210,8 +210,8 @@ class EventDataFrame(CoreEventDataFrame):
                         data_dict['slope_ly'].append(ycorr[evaluation_mask][evaluation_pos])
 
                         min_pos = np.argmin(signal.y[event_mask])
-                        global_min_t = signal.t[min_pos+event_pos]
-                        global_min_y = signal.y[min_pos+event_pos]
+                        global_min_t = signal.t[min_pos + event_pos]
+                        global_min_y = signal.y[min_pos + event_pos]
 
                         data_dict['min_lt'].append(global_min_t - start_t)
                         data_dict['min_ly'].append(global_min_y - start_y)
@@ -368,9 +368,9 @@ class EventDataFrame(CoreEventDataFrame):
         filtered_events['approx_time_20_80'] = 0.6 * filtered_events.peak_ly / filtered_events.slope
 
         return \
-            number_filtered_events/number_all_events, \
-            number_slope_filtered_events/number_all_events, \
-            number_peak_filtered_events/number_all_events, \
+            number_filtered_events / number_all_events, \
+            number_slope_filtered_events / number_all_events, \
+            number_peak_filtered_events / number_all_events, \
             filtered_events
 
     def check_event_mask(
@@ -530,5 +530,3 @@ class EventDataFrame(CoreEventDataFrame):
         loaded event dataframe: EventDataFrame
         """
         return load_eventdataframe_from_hdf5(filepath, use_class=cls)
-
-

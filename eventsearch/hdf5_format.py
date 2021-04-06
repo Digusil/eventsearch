@@ -4,7 +4,8 @@ change log:
         initial state of snaa saving
 """
 
-# based on hdf5_format.py from tensorflow (https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/keras/saving/hdf5_format.py)
+# based on hdf5_format.py from tensorflow
+# (https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/keras/saving/hdf5_format.py)
 
 import json
 import os
@@ -18,17 +19,19 @@ from .saving_utils import ask_to_proceed_with_overwrite
 
 __version__ = eventsearch_saving_version = "0.1.0"
 
-
 # pylint: disable=g-import-not-at-top
 try:
-  import h5py
-  HDF5_OBJECT_HEADER_LIMIT = 64512
+    import h5py
+
+    HDF5_OBJECT_HEADER_LIMIT = 64512
 except ImportError:
-  h5py = None
+    h5py = None
+
+
 # pylint: enable=g-import-not-at-top
 
 
-def get_json_type(obj): # from tensorflow
+def get_json_type(obj):  # from tensorflow
     """Serializes any object to a JSON-serializable structure.
     Arguments:
       obj: the object to serialize
@@ -188,7 +191,8 @@ def load_eventlist_from_hdf5(filepath, use_class: type = None):
         elif use_class.__name__ == load_attributes(f, 'class_name'):
             cls = use_class
         else:
-            raise TypeError('Type of saved object is {} and not {}'.format(load_attributes(f, 'class_name'), use_class.__name__))
+            raise TypeError(
+                'Type of saved object is {} and not {}'.format(load_attributes(f, 'class_name'), use_class.__name__))
 
         config = load_attributes(f, 'config')
 
@@ -266,14 +270,15 @@ def load_event_from_hdf5(filepath: str, use_class: type = None):
     try:
         if use_class is None:
             from eventsearch.events import Event
-            #from eventsearch.events import SpontaneousActivityEvent
+            # from eventsearch.events import SpontaneousActivityEvent
             from eventsearch.core import CoreEvent
 
             cls = locals()[load_attributes(f, 'class_name')]
         elif use_class.__name__ == load_attributes(f, 'class_name'):
             cls = use_class
         else:
-            raise TypeError('Type of saved object is {} and not {}'.format(load_attributes(f, 'class_name'), use_class.__name__))
+            raise TypeError(
+                'Type of saved object is {} and not {}'.format(load_attributes(f, 'class_name'), use_class.__name__))
 
         t = load_array_from_dataset(f['time_series'], 't')
         y = load_array_from_dataset(f['time_series'], 'y')
@@ -452,7 +457,7 @@ def load_eventdataframe_from_hdf5(filepath: str, use_class: type = None):
         signal_names = load_attributes(f['signals'], 'signal_list')
 
         for signal in signal_names:
-            event_data._signal_dict.update({signal: load_signal_from_hdf5(f['signals/'+signal])})
+            event_data._signal_dict.update({signal: load_signal_from_hdf5(f['signals/' + signal])})
 
     finally:
         if opened_new_file:
