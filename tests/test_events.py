@@ -6,7 +6,7 @@ import numpy as np
 
 from eventsearch.signals import SingleSignal
 from eventsearch.events import Event, EventList, EventDataFrame
-from tests.utils import TemporaryFolder
+from utils import TemporaryFolder
 
 
 class TestEvent(unittest.TestCase):

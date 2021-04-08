@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     np.random.seed(42)  # make reproducable
 
-    #--------------------
+    # --------------------
     # prepare data
     # --------------------
 
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # create signal object
     signal = SingleSignal(t, y)
 
-    #create event dataframe
+    # create event dataframe
     event_df = EventDataFrame()
     event_df.add_signal(signal)  # add signal to event dataframe
 

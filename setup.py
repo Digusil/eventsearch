@@ -20,17 +20,18 @@ requirements = [
     'scipy>=1.6.0',
     'pandas>=1.2.1',
     'cached-property>=1.5.2',
+    'tables>=3.6.1',
     'h5py>=3.1.0'
 ]
 
 
-def get_readme() -> str:
+def get_readme():
     """
     Method to read the README.rst file
 
     :return: string containing README.md file
     """
-    with open('readme.md') as file:
+    with open('README.md') as file:
         return file.read()
 
 
