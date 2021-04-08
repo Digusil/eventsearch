@@ -44,10 +44,6 @@ def kernel_helper(window_len=11, window='hann', **kwargs):
     if window not in window_list:
         raise (ValueError, "{:s} is not a valid window".format(window))
 
-    # s = np.r_[x[window_len - 1:0:-1], x, x[-2:-window_len - 1:-1]]
-    # print(len(s))
-
-    # w = eval('sig.' + window + '(window_len' + kwargs_str + ')')
     return eval('sig.' + window + '(window_len, **kwargs)')
 
 
@@ -87,7 +83,6 @@ def smooth(x, window_len=11, window='hann', convolve_mode='same', **kwargs):
 
     w = kernel_helper(window_len=window_len, window=window)
 
-    # y = np.convolve(w / w.sum(), s, mode=convolve_mode)
     y = np.convolve(x, w / w.sum(), mode=convolve_mode)
     return y
 

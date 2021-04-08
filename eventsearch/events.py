@@ -3,7 +3,7 @@ import pandas as pd
 
 from .core import CoreEvent, CoreSingleSignal, CoreEventList, CoreEventDataFrame
 from .event_utils import search_breaks
-from .hdf5_format import save_event_to_hdf5, load_event_from_hdf5, save_eventlist_to_hdf5, load_eventlist_from_hdf5, \
+from .saving import save_event_to_hdf5, load_event_from_hdf5, save_eventlist_to_hdf5, load_eventlist_from_hdf5, \
     save_eventdataframe_to_hdf5, load_eventdataframe_from_hdf5
 from .utils import Smoother
 
@@ -407,7 +407,7 @@ class EventDataFrame(CoreEventDataFrame):
         ----------
         neg_threshold: float
             threshold for the negative slope trigger (start trigger)
-        pos_threshold: flaot
+        pos_threshold: float
             threshold for the positive slope trigger (end trigger)
         slope_threshold_linear_point: float, optional
             slope threshold for inflection trigger. Default 2000.

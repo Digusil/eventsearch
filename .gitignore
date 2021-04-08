@@ -1,12 +1,9 @@
 # generic patterns
 **/gitignore/
 **/.data/
-**/_data/
 **/data.*/
 **/.test/
-**/_test/
 **/.playcorner/
-**/_playcorner/
 **/_*/
 
 # program specific patterns
@@ -50,7 +47,6 @@
 *.npy
 *.mat
 *.pkl
-*.png
 *.csv
 
 # macOS

@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 from cached_property import cached_property
 
-from .hdf5_format import save_signal_to_hdf5, load_signal_from_hdf5
+from .saving import save_signal_to_hdf5, load_signal_from_hdf5
 from .core import CoreSingleSignal
 from .utils import Smoother
 

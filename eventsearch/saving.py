@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 
 from .core import CoreEvent, CoreEventList
-from .saving_utils import ask_to_proceed_with_overwrite
 
 __version__ = eventsearch_saving_version = "0.1.0"
 
@@ -29,19 +28,24 @@ except ImportError:
 
 
 # pylint: enable=g-import-not-at-top
-
-
-def get_json_type(obj):  # from tensorflow
-    """Serializes any object to a JSON-serializable structure.
-    Arguments:
-      obj: the object to serialize
-    Returns:
-      JSON-serializable structure representing `obj`.
-    Raises:
-      TypeError: if `obj` cannot be serialized.
+def get_json_type(obj):  # adaption from tensorflow
+    # (https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/keras/saving/saved_model/json_utils.py)
     """
-    # if obj is a serializable Keras class instance
-    # e.g. optimizer, layer
+    Serializes objects for JSON.
+
+    Parameters
+    ----------
+    obj: several
+        obj should have "get_config" attribute, be a ndarray instance, callable or ba a type.
+
+    Returns
+    -------
+    JSON-serializable value or structure
+
+    Raises
+    -------
+    TypeError: if `obj` cannot be serialized.
+    """
     if hasattr(obj, 'get_config'):
         return {
             'class_name': obj.__class__.__name__,
@@ -88,11 +92,8 @@ def handle_filepath_saving(filepath, overwrite=True):
         raise ImportError('`save_model` requires h5py.')
 
     if not isinstance(filepath, (h5py.File, h5py.Group)):
-        # If file exists and should not be overwritten.
         if not overwrite and os.path.isfile(filepath):
-            proceed = ask_to_proceed_with_overwrite(filepath)
-            if not proceed:
-                return
+            raise FileExistsError("File {} allready exists and overrite is {}.".format(filepath, overwrite))
 
         f = h5py.File(filepath, mode='w')
         opened_new_file = True
@@ -610,42 +611,3 @@ def load_attributes(f, name):
         return json.loads(f.attrs.get(name))
     except (JSONDecodeError, TypeError):
         return f.attrs.get(name)
-
-
-def save_data_into_hdf5_group_attributes(group, name, data):
-    """Saves attributes (data) of the specified name into the HDF5 group.
-    This method deals with an inherent problem of HDF5 file which is not
-    able to store data larger than HDF5_OBJECT_HEADER_LIMIT bytes.
-    Arguments:
-        group: A pointer to a HDF5 group.
-        name: A name of the attributes to save.
-        data: Attributes data to store.
-    Raises:
-        RuntimeError: If any single attribute is too large to be saved.
-    """
-    # Check that no item in `data` is larger than `HDF5_OBJECT_HEADER_LIMIT`
-    # because in that case even chunking the array would not make the saving
-    # possible.
-    bad_attributes = [x for x in data if len(x) > HDF5_OBJECT_HEADER_LIMIT]
-
-    # Expecting this to never be true.
-    if bad_attributes:
-        raise RuntimeError('The following attributes cannot be saved to HDF5 '
-                           'file because they are larger than %d bytes: %s' %
-                           (HDF5_OBJECT_HEADER_LIMIT, ', '.join(bad_attributes)))
-
-    data_npy = np.asarray(data)
-
-    num_chunks = 1
-    chunked_data = np.array_split(data_npy, num_chunks)
-
-    # This will never loop forever thanks to the test above.
-    while any(x.nbytes > HDF5_OBJECT_HEADER_LIMIT for x in chunked_data):
-        num_chunks += 1
-        chunked_data = np.array_split(data_npy, num_chunks)
-
-    if num_chunks > 1:
-        for chunk_id, chunk_data in enumerate(chunked_data):
-            group.attrs['%s%d' % (name, chunk_id)] = chunk_data
-    else:
-        group.attrs[name] = data

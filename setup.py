@@ -1,21 +1,6 @@
 #! /opt/conda/bin/python3
 """ General PyPI compliant setup.py configuration of the package """
 
-# Copyright 2018 FAU-iPAT (http://ipat.uni-erlangen.de/)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 from setuptools import setup
 
 version = {}
@@ -57,11 +42,11 @@ setup(
     version=__version__,
     author=__author__,
     author_email=__email__,
-    description='A test bench for comparing different parameters on models with the same topology.',
+    description='eventsearch is a python package for detection spontaneous events in time series.',
     long_description=get_readme(),
-    url='???',  # todo: set package url
+    url='https://github.com/digusil/eventsearch',  # todo: set package url
     license=__license__,
-    keywords='eventsearch',  # todo: add keywords
+    keywords=['eventsearch', 'spontaneous event detection'],
     packages=['eventsearch'],
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -73,7 +58,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering :: Information Analysis",
-        "Topic :: Scientific/Engineering :: Mathematics",
+        "Topic :: Scientific/Engineering :: Mathematics"
     ],
     python_requires='>=3.7',
     install_requires=requirements,
