@@ -12,7 +12,7 @@ class Event(CoreEvent):
     def __init__(self, data: CoreSingleSignal = None, t_start: float = None, t_end: float = None,
                  t_reference: float = None, **kwargs):
         """
-        Event class
+        event class
 
         Parameters
         ----------
@@ -34,9 +34,9 @@ class Event(CoreEvent):
         Parameters
         ----------
         filepath: str
-            name / path of the file.
+            name / path of the file
         overwrite: bool, optional
-            should an existing file be overited? Defualt True.
+            Should an existing file be overwritten? Default is True.
         """
         save_event_to_hdf5(self, filepath, overwrite)
 
@@ -48,7 +48,7 @@ class Event(CoreEvent):
         Parameters
         ----------
         filepath: str
-            name / path of the file.
+            name / path of the file
 
         Returns
         -------
@@ -71,10 +71,10 @@ class EventList(CoreEventList):
         Parameters
         ----------
         filepath: str
-            name / path of the file.
+            name / path of the file
         overwrite: bool, optional
-            should an existing file be overited? Defualt True.
-                """
+            Should an existing file be overwritten? Default is True.
+        """
         save_eventlist_to_hdf5(self, filepath, overwrite)
 
     @classmethod
@@ -85,7 +85,7 @@ class EventList(CoreEventList):
         Parameters
         ----------
         filepath: str
-            name / path of the file.
+            name / path of the file
 
         Returns
         -------
@@ -111,7 +111,7 @@ class EventList(CoreEventList):
                 - 'pos': end peak plateau
                 - 'start': event start
         threshold: float
-        slope threshold for inflection trigger
+            slope threshold for inflection trigger
         """
         for event in search_breaks(*args, **kwargs):
             self.append(event)
@@ -120,22 +120,22 @@ class EventList(CoreEventList):
 class EventDataFrame(CoreEventDataFrame):
     def __init__(self, *args, **kwargs):  #
         """
-        Event dataframe class. The instances of this class holds the signals and a pandas dataframe with the event
-        data.
+        event dataframe class
+        The instances of this class holds the signals and a pandas dataframe with the event data.
         """
         super(EventDataFrame, self).__init__(*args, **kwargs)
 
     def _simple_analysis(self, event_numbers=None, neg_smoother: Smoother = Smoother(window_len=31, window='hann')):
         """
-        Search events only by local extrem values.
+        Search events only by local extreme values.
 
         Parameters
         ----------
         event_numbers: list or None, optional
             event mask with event numbers for custom event analysis. If None, the event postions will be detected by
-            local extrem values. Default None.
+            local extreme values. Default is None.
         neg_smoother: Smoother, optional
-            smoother object for start trigger. Default Smoother(window_len=31, window='hann')).
+            smoother object for start trigger. Default is Smoother(window_len=31, window='hann')).
 
         Returns
         -------
@@ -233,7 +233,7 @@ class EventDataFrame(CoreEventDataFrame):
     @staticmethod
     def _get_min_max_masks(signal):
         """
-        Find local extrem values.
+        Find local extreme values.
 
         Parameters
         ----------
@@ -261,7 +261,7 @@ class EventDataFrame(CoreEventDataFrame):
             neg_smoother: Smoother = Smoother(window_len=31, window='hann')
     ):
         """
-        Detect events by local extrem values.
+        Detect events by local extreme values.
 
         Parameters
         ----------
@@ -269,9 +269,9 @@ class EventDataFrame(CoreEventDataFrame):
             name of the signal
         event_numbers: list or None, optional
             event mask with event numbers for custom event analysis. If None, the event postions will be detected by
-            local extrem values. Default None.
+            local extreme values. Default is None.
         neg_smoother: Smoother, optional
-            smoother object for start trigger. Default Smoother(window_len=31, window='hann')).
+            smoother object for start trigger. Default is Smoother(window_len=31, window='hann')).
 
         Returns
         -------
@@ -331,25 +331,25 @@ class EventDataFrame(CoreEventDataFrame):
             **kwargs
     ):
         """
-        Quick check of the search parameter:
+        Quick check of the search parameter.
 
         Parameters
         ----------
         neg_threshold: float
             threshold for the negative slope trigger (start trigger)
         min_peak_threshold: float, optional
-            min. peak amplidute threshold. Default 3.0
+            min. peak amplidute threshold. Default is 3.0
         neg_smoother: Smoother, optional
-            smoother object for start trigger. Default Smoother(window_len=31, window='hann')).
+            smoother object for start trigger. Default is Smoother(window_len=31, window='hann')).
 
         Returns
         -------
         value 1: float
-            proportion of all filtered events.
+            proportion of all filtered events
         value 2: float
-            proportion of filtered events by slope threshold.
+            proportion of filtered events by slope threshold
         value 2: float
-            proportion of filtered events by amplitude threshold.
+            proportion of filtered events by amplitude threshold
         event dataframe: DataFrame
             resulting event dataframe by simple search
         """
@@ -384,9 +384,9 @@ class EventDataFrame(CoreEventDataFrame):
         Parameters
         ----------
         event_numbers: list or None
-            event mask with event numbers for custom event analysis.
+            event mask with event numbers for custom event analysis
         neg_smoother: Smoother, optional
-            smoother object for start trigger. Default Smoother(window_len=31, window='hann')).
+            smoother object for start trigger. Default is Smoother(window_len=31, window='hann')).
 
         Returns
         -------
@@ -410,23 +410,23 @@ class EventDataFrame(CoreEventDataFrame):
         pos_threshold: float
             threshold for the positive slope trigger (end trigger)
         slope_threshold_linear_point: float, optional
-            slope threshold for inflection trigger. Default 2000.
+            slope threshold for inflection trigger. Default is 2000.
         min_peak_threshold: float, optional
-            min. peak amplidute threshold. Default 3.0
+            min. peak amplidute threshold. Default is 3.0.
         min_length: float
-            min. event lenght threshold. Default 0.001
+            min. event lenght threshold. Default is 0.001.
         neg_smoother: Smoother, optional
-            smoother for start trigger. Default Smoother(window_len=31, window='hann').
+            smoother for start trigger. Default is Smoother(window_len=31, window='hann').
         pos_smoother: Smoother, optional
-            smootehr for end trigger. Default Smoother(window_len=31, window='hann').
+            smootehr for end trigger. Default is Smoother(window_len=31, window='hann').
         event_class: type, optional
-            class of the returned events. Default CoreEvent.
+            class of the returned events. Default is CoreEvent.
         custom_data: dict, optional
-            Add cosutm data to event. Default {}.
+            Add cosutm data to event. Default is {}.
         signal: SingleSignal, str or None, optional
             Singla data that will be analysed. If SingleSignal, the signal will be added to the singal dictionary. If
             string, the name will be looked up in the signal dictionary. If None, all registraded signals in the signal
-            dictionary will be analysed. Defautl None.
+            dictionary will be analysed. Default is None.
         """
         if isinstance(signal, CoreSingleSignal):
             self.add_signal(signal, signal.name)
@@ -452,7 +452,7 @@ class EventDataFrame(CoreEventDataFrame):
         event_id: int
             event id
         event_type: type, optional
-            type of the exported event. Default Event.
+            type of the exported event. Default is Event.
 
         Returns
         -------
@@ -489,7 +489,7 @@ class EventDataFrame(CoreEventDataFrame):
         Parameters
         ----------
         event_type: type, optional
-            type of the exported event. Default Event.
+            type of the exported event. Default is Event.
 
         Returns
         -------
@@ -509,9 +509,9 @@ class EventDataFrame(CoreEventDataFrame):
         Parameters
         ----------
         filepath: str
-            name / path of the file.
+            name / path of the file
         overwrite: bool, optional
-            should an existing file be overited? Defualt True.
+            should an existing file be overwritten? Default is True.
         """
         save_eventdataframe_to_hdf5(self, filepath, overwrite)
 
@@ -523,7 +523,7 @@ class EventDataFrame(CoreEventDataFrame):
         Parameters
         ----------
         filepath: str
-            name / path of the file.
+            name / path of the file
 
         Returns
         -------

@@ -52,7 +52,7 @@ class CachedObject(object):
 
     def del_cache(self, container: str = None) -> None:
         """
-        Delete listed properties in container
+        Delete listed properties in container.
 
         @param container: container of properties
         @return: None
@@ -79,7 +79,7 @@ class CachedObject(object):
 
     def register_cached_property(self, name: str, container: str = 'default') -> None:
         """
-        register a cached property in a container
+        Register a cached property in a container.
 
         @param name: property name
         @param container: container to store the property name
@@ -93,7 +93,7 @@ class CachedObject(object):
 
     def unregister_cached_property(self, name: str, container: str = None) -> None:
         """
-        unregister a property from container
+        Unregister a property from container.
 
         @param name: name of the property
         @param container: name of the container
@@ -109,7 +109,7 @@ class CachedObject(object):
 
     def add_container(self, name: str, content: list = None) -> None:
         """
-        add a container
+        Add a container.
 
         @param name: container name
         @param content: properties to store on creation
@@ -123,7 +123,7 @@ class CachedObject(object):
 
     def remove_container(self, name: str) -> None:
         """
-        remove container
+        Remove container.
 
         @param name: container name
         @return: None
@@ -133,7 +133,7 @@ class CachedObject(object):
 
     def get_config(self) -> dict:
         """
-        generate object config dictionary
+        Generate object config dictionary.
 
         @return: config dictionary
         """
@@ -142,7 +142,7 @@ class CachedObject(object):
     @classmethod
     def from_config(cls, config):
         """
-        create object from config dictionary
+        Create object from config dictionary.
 
         @param config: config dictionary
         @return: object

@@ -41,7 +41,7 @@ def nadaraya_watson_estimator(x, x_data, y_data, h):
 
 def non_parametric_variance_estimator(x, h, foo, x_test, y_test, **kwargs):
     """
-    Estimate the variance nonparametricaly.
+    Estimate the variance nonparametrically.
 
     Parameters
     ----------
@@ -78,7 +78,7 @@ class Estimator(IdentifedCachedObject):
             target data
         data_seperation: dict or None, optional
             Proportion or amount of samples in each data set. If None: {'train': 0.7, 'test': 0.3} that means 70% of the
-             data in 'trian' set and 30% in the 'test' set. Default None.
+             data in 'trian' set and 30% in the 'test' set. Default is None.
         """
         super(Estimator, self).__init__(**kwargs)
         if data_seperation is None:
@@ -140,7 +140,7 @@ class Estimator(IdentifedCachedObject):
 
     def _get_sub_data_length(self, value):
         """
-        calculate data set length for seperation.
+        Calculate data set length for seperation.
 
         Parameters
         ----------
@@ -190,7 +190,7 @@ class Estimator(IdentifedCachedObject):
 
     def _get_data(self, container):
         """
-        Get seperated data based on the seperation dict.
+        Get seperated data based on the separation dict.
 
         Parameters
         ----------
@@ -237,7 +237,7 @@ class NadarayaWatsonCore(Estimator):
             bandwidth
         data_seperation: dict or None, optional
             Proportion or amount of samples in each data set. If None: {'train': 1.0} that means 100% of the data in
-            'trian'. Default None.
+            'trian'. Default is None.
         """
         if data_seperation is None:
             data_seperation = {'train': 1}
@@ -273,14 +273,14 @@ class NadarayaWatsonCore(Estimator):
 
     def _predict_foo(self, a_x, train_container='train', **kwargs):
         """
-        Prediction function
+        prediction function
 
         Parameters
         ----------
         a_x: float
             evaluation point
         train_container: str, optional
-            name of training container. Default 'train'.
+            name of training container. Default is 'train'.
 
         Returns
         -------
@@ -300,7 +300,7 @@ class NadarayaWatsonCore(Estimator):
         x: ndarray
             evaluation positions
         train_container: str, optional
-            name of training container. Default 'train'.
+            name of training container. Default is 'train'.
 
         Returns
         -------
@@ -323,7 +323,7 @@ class NadarayaWatsonCore(Estimator):
         a_x: float
             evaluation point
         data_container: str, optional
-            name of training container. Default 'train'.
+            name of training container. Default is 'train'.
 
         Returns
         -------
@@ -349,7 +349,7 @@ class NadarayaWatsonCore(Estimator):
         a_x: float
             evaluation point
         data_container: str, optional
-            name of training container. Default 'train'.
+            name of training container. Default is 'train'.
 
         Returns
         -------
@@ -366,7 +366,7 @@ class NadarayaWatsonCore(Estimator):
         x: ndarray
             evaluation points
         data_containerdata_container: str, optional
-            name of training container. Default 'train'.
+            name of training container. Default is 'train'.
 
         Returns
         -------
@@ -400,12 +400,12 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
         h_var: float, optional
             bandwith for variance estimation
         train_container: str, optional
-            name of training data container. Default 'train'.
+            name of training data container. Default is 'train'.
         test_container: str, optional
-            name of testing data container. Default 'test'.
+            name of testing data container. Default is 'test'.
         data_seperation: dict or None, optional
             Proportion or amount of samples in each data set. If None: {'train': 0.7, 'test': 0.3} that means 70% of the
-             data in 'trian' set and 30% in the 'test' set. Default None.
+             data in 'trian' set and 30% in the 'test' set. Default is None.
         """
         if data_seperation is None:
             data_seperation = {'train': 0.7, 'test': 0.3}
@@ -425,11 +425,11 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
         Parameters
         ----------
         container: str or None, optional
-            name of the container. If None all container caches will be deleted. Default None.
+            name of the container. If None all container caches will be deleted. Default is None.
         train_container: str, optional
-            name of training data container. Default 'train'.
+            name of training data container. Default is 'train'.
         test_container: str, optional
-            name of testing data container. Default 'test'.
+            name of testing data container. Default is 'test'.
         """
         super(NadarayaWatsonEstimator, self).del_cache(container)
 
@@ -443,9 +443,9 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
         Parameters
         ----------
         train_container: str, optional
-            name of training data container. Default 'train'.
+            name of training data container. Default is 'train'.
         test_container: str, optional
-            name of testing data container. Default 'test'.
+            name of testing data container. Default is 'test'.
         """
         if self.features is not None and self.targets is not None:
             test_features, test_targets = self._get_data(test_container)
@@ -481,7 +481,7 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
 
     def _variance_foo(self, a_x, **kwargs):
         """
-        Prediction function of the variance estimation
+        prediction function of the variance estimation
 
         Parameters
         ----------
@@ -496,7 +496,7 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
 
     def variance(self, x, **kwargs):
         """
-        Estimate the variance of the Nadaraya-Watson-Estimator at the positions x.
+        Estimate the variance of the Nadaraya-Watson-Estimator at x positions.
 
         Parameters
         ----------
@@ -511,7 +511,7 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
 
     def _standard_error_foo(self, a_x):
         """
-        Function to calculate Standard error.
+        Function to calculate standard error.
 
         Parameters
         ----------
@@ -552,14 +552,14 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
 
     def _confidence_delta_foo(self, a_x, alpha=0.05):
         """
-        Function to calculate the confidance intervall distance.
+        Function to calculate the confidence interval distance.
 
         Parameters
         ----------
         a_x: float
             evaluation point
         alpha: float, optional
-            value of the confidence interavall. Default 0.05.
+            value of the confidence interaval. Default is 0.05.
 
         Returns
         -------
@@ -571,14 +571,14 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
 
     def confidence_delta(self, x, alpha=0.05):
         """
-        Calulate the confidence intervall distance.
+        Calulate the confidence interval distance.
 
         Parameters
         ----------
         x: ndarray
             evaluation positions
         alpha: float, optional
-            value of the confidence interavall. Default 0.05.
+            value of the confidence interaval. Default is 0.05.
 
         Returns
         -------
@@ -597,14 +597,14 @@ class NadarayaWatsonEstimator(NadarayaWatsonCore):
 
     def confidence_interval(self, x, alpha=0.05):
         """
-        Calulate the confidence intervall borders.
+        Calulate the confidence interval borders.
 
         Parameters
         ----------
         x: ndarray
             evaluation positions
         alpha: float, optional
-            value of the confidence interavall. Default 0.05.
+            value of the confidence interaval. Default is 0.05.
 
         Returns
         -------

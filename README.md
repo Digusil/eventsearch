@@ -1,4 +1,4 @@
-**eventsearch** is a python package for detection spontaneous events in time series. We programmed this to detect events that starts with an step like rising and a capacitor like recovery to a settle value. 
+**eventsearch** is a python package for the detection of spontaneous events in time series. We programmed this to detect events that start with a step like rising and a capacitor like recovery to a settle value. 
 
 ![Image](https://github.com/digusil/eventsearch/example/example.png)
 
@@ -16,7 +16,7 @@ cd ./test && python -m unittest
 ```
 
 ## Acknowledgement
-This software was developted on the [institute for process mashinary](https://www.ipat.tf.fau.eu).
+This software was developted on the [institute for process machinery](https://www.ipat.tf.fau.eu).
 
 ## License
 [Apache License 2.0](LICENSE.txt)

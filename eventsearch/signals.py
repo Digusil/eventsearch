@@ -11,7 +11,7 @@ from .utils import Smoother
 class SingleSignal(CoreSingleSignal):
     def __init__(self, *args, **kwargs):
         """
-        Signal class that stores the data and support vairos calculations.
+        Signal class that stores the data and support various calculations.
 
         Parameters
         ----------
@@ -20,10 +20,10 @@ class SingleSignal(CoreSingleSignal):
         y: ndarray
             values corresponding to the time points t
         name: str or None, optional
-            name for the signal that will registrated in the global singal name dictionary if the parameter "listed" is
-            true. If None, a unique generic singal name will be generated.
+            Name for the signal that will registrated in the global singal name dictionary if the parameter "listed" is
+            True. If None, a unique generic singal name will be generated.
         listed: bool, optional
-            If True the singal will be registrated in the global singal name dictionary. Default ist True.
+            If True the singal will be registrated in the global signal name dictionary. Default is True.
         """
         super(SingleSignal, self).__init__(*args, **kwargs)
 
@@ -34,7 +34,7 @@ class SingleSignal(CoreSingleSignal):
         Parameters
         ----------
         listed: bool, optional
-            If True the singal will be registrated in the global singal name dictionary. Default ist False.
+            If True the singal will be registrated in the global singal name dictionary. Default is False.
 
         Returns
         -------
@@ -82,7 +82,7 @@ class SingleSignal(CoreSingleSignal):
 class SmoothedSignal(SingleSignal):
     def __init__(self, *args, smoother: Smoother = Smoother(), **kwargs):
         """
-        Smoothed signal class
+        smoothed signal class
 
         Parameters
         ----------
@@ -91,12 +91,12 @@ class SmoothedSignal(SingleSignal):
         y: ndarray
             values corresponding to the time points t
         name: str or None, optional
-            name for the signal that will registrated in the global singal name dictionary if the parameter "listed" is
-            true. If None, a unique generic singal name will be generated. Defalt None.
+            Name for the signal that will registrated in the global signal name dictionary if the parameter "listed" is
+            True. If None, a unique generic singal name will be generated. Defalt is None.
         smoother: Smoother
             smoother object
         listed: bool, optional
-            If True the singal will be registrated in the global singal name dictionary. Default ist True.
+            If True the singal will be registrated in the global signal name dictionary. Default is True.
         """
         kwargs['name'] = self._gen_name(kwargs['name'])
         super(SmoothedSignal, self).__init__(*args, **kwargs)
@@ -117,7 +117,7 @@ class SmoothedSignal(SingleSignal):
         Parameters
         ----------
         name: str or None
-            Custom object name.
+            Custom object name
 
         Returns
         -------
@@ -145,7 +145,7 @@ class SmoothedSignal(SingleSignal):
         Parameters
         ----------
         value: Smoother
-            smoother object.
+            smoother object
         """
         self.del_cache()
 

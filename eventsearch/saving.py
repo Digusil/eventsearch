@@ -36,7 +36,7 @@ def get_json_type(obj):  # adaption from tensorflow
     Parameters
     ----------
     obj: several
-        obj should have "get_config" attribute, be a ndarray instance, callable or ba a type.
+        obj should have "get_config" attribute, be a ndarray, callable or be type instance.
 
     Returns
     -------
@@ -79,14 +79,14 @@ def handle_filepath_saving(filepath, overwrite=True):
     filepath: str or h5py.file
         path / filename / file
     overwrite: boor, optinal
-        If True, an existing file will be overitten. Default True.
+        If True, an existing file will be overwritten. Default is True.
 
     Returns
     -------
     f: h5py.File or h5py.Group
         h5py object
     new file opended: bool
-        If True, a new file is opend.
+        Is True, if a new file was opened.
     """
     if h5py is None:
         raise ImportError('`save_model` requires h5py.')
@@ -118,7 +118,7 @@ def handle_filepath_loading(filepath):
     f: h5py.File or h5py.Group
         h5py object
     new file opended: bool
-        If True, a new file is opend.
+        Is True, if a new file was opened.
     """
     if h5py is None:
         raise ImportError('`load_model` requires h5py.')
@@ -137,11 +137,11 @@ def save_eventlist_to_hdf5(event_list: CoreEventList, filepath, overwrite=True):
     Parameters
     ----------
     event_list: EventList
-        Object that will be saved
+        Object that will be saved.
     filepath: str or h5py.file
         path / filename / file
     overwrite: boor, optinal
-        If True, an existing file will be overitten. Default True.
+        If True, an existing file will be overwitten. Default is True.
     """
     from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
@@ -175,7 +175,7 @@ def load_eventlist_from_hdf5(filepath, use_class: type = None):
     filepath: str or h5py.file
         path / filename / file
     use_class: type or None, optional
-        Create object with specific type. If None, the original type of the object will be used. Default None.
+        Create object with specific type. If None, the original type of the object will be used. Default is None.
 
     Returns
     -------
@@ -222,7 +222,7 @@ def save_event_to_hdf5(event: CoreEvent, filepath, overwrite=True):
     filepath: str or h5py.file
         path / filename / file
     overwrite: boor, optinal
-        If True, an existing file will be overitten. Default True.
+        If True, an existing file will be overwritten. Default is True.
     """
     from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
@@ -260,7 +260,7 @@ def load_event_from_hdf5(filepath: str, use_class: type = None):
     filepath: str or h5py.file
         path / filename / file
     use_class: type or None, optional
-        Create object with specific type. If None, the original type of the object will be used. Default None.
+        Create object with specific type. If None, the original type of the object will be used. Default is None.
 
     Returns
     -------
@@ -315,7 +315,7 @@ def save_signal_to_hdf5(signal, filepath, overwrite=True):
     filepath: str or h5py.file
         path / filename / file
     overwrite: boor, optinal
-        If True, an existing file will be overitten. Default True.
+        If True, an existing file will be overwritten. Default is True.
     """
     from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
@@ -348,7 +348,7 @@ def load_signal_from_hdf5(filepath: str, use_class: type = None):
     filepath: str or h5py.file
         path / filename / file
     use_class: type or None, optional
-        Create object with specific type. If None, the original type of the object will be used. Default None.
+        Create object with specific type. If None, the original type of the object will be used. Default is None.
 
     Returns
     -------
@@ -392,7 +392,7 @@ def save_eventdataframe_to_hdf5(event_data, filepath, overwrite=True):
     filepath: str or h5py.file
         path / filename / file
     overwrite: boor, optinal
-        If True, an existing file will be overitten. Default True.
+        If True, an existing file will be overwritten. Default is True.
     """
     from eventsearch import __version__ as eventsearch_version  # pylint: disable=g-import-not-at-top
 
@@ -431,11 +431,11 @@ def load_eventdataframe_from_hdf5(filepath: str, use_class: type = None):
     filepath: str or h5py.file
         path / filename / file
     use_class: type or None, optional
-        Create object with specific type. If None, the original type of the object will be used. Default None.
+        Create object with specific type. If None, the original type of the object will be used. Default is None.
 
     Returns
     -------
-    evnet: use_class
+    event: use_class
     """
     f, opened_new_file = handle_filepath_loading(filepath)
 
@@ -478,9 +478,9 @@ def save_array_in_dataset(f, name, val, attrs=None):
     Parameters
     ----------
     f: h5py.File or h5py.Group
-        File or Group for storing the data.
+        file or group for storing the data
     name: str
-        Group name for staring the data.
+        group name for staring the data
     val: ndarray
         data
     attrs: dict
@@ -515,9 +515,9 @@ def load_array_from_dataset(f, name):
     Parameters
     ----------
     f: h5py.File or h5py.Group
-        File or Group of the data.
+        file or group of the data
     name: str
-        Group name of the data.
+        group name of the data
 
     Returns
     -------
@@ -538,9 +538,9 @@ def save_array_list_in_dataset(f, name, val, **kwargs):
     Parameters
     ----------
     f: h5py.File or h5py.Group
-        File or Group for storing the data.
+        file or group for storing the data
     name: str
-        Group name for staring the data.
+        group name for staring the data
     val: list of ndarrays
         data
     attrs: dict

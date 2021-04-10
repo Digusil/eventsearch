@@ -28,19 +28,19 @@ def get_signal_names():
 class CoreSingleSignal(IdentifedCachedObject):
     def __init__(self, t: np.ndarray = None, y: np.ndarray = None, name: str = None, listed=True, **kwargs):
         """
-        Core class for single signals.
+        core class for single signals
 
         Parameters
         ----------
         t: ndarray
             time points
         y: ndarray
-            values corresponding to the time points t
+            Values corresponding to the time points t.
         name: str or None, optional
-            name for the signal that will registrated in the global singal name dictionary if the parameter "listed" is
-            true. If None, a unique generic singal name will be generated.
+            Name for the signal that will be registrated in the global singal name dictionary if the parameter "listed"
+            is True. If None, a unique generic singal name will be generated.
         listed: bool,
-            If True the singal will be registrated in the global singal name dictionary. Default ist True.
+            If True the signl will be registrated in the global singal name dictionary. Default is True.
         """
         super(CoreSingleSignal, self).__init__(**kwargs)
 
@@ -68,7 +68,7 @@ class CoreSingleSignal(IdentifedCachedObject):
 
     def _gen_name(self, name: str = None):
         """
-        Generate objact name.
+        Generate object name.
 
         Parameters
         ----------
@@ -608,7 +608,7 @@ class CoreEventList(IdentifedCachedObject):
 class CoreEventDataFrame(IdentifedObject):
     def __init__(self, *args, **kwargs):
         """
-        Event dataframe core class. The instances of this class holds the signals and a pandas dataframe with the event
+        Event dataframe core class. The instances of this class hold the signals and a pandas dataframe with the event
         data.
         """
         super(CoreEventDataFrame, self).__init__(*args, **kwargs)
@@ -627,15 +627,15 @@ class CoreEventDataFrame(IdentifedObject):
 
     def add_signal(self, signal: CoreSingleSignal, name: str = None):
         """
-        Add signal to instace.
+        Add signal to instance.
 
         Parameters
         ----------
         signal: CoreSingleSignal
             Signal that will be added to the instance.
         name: str or None, optional
-            Name of the signal that will be added. If None, the name stored in the signal instace will be used. Degautl
-            None.
+            Name of the signal that will be added. If None, the name stored in the signal instace will be used. Default
+            is None.
         """
         if name is None:
             name = signal.name
@@ -644,7 +644,7 @@ class CoreEventDataFrame(IdentifedObject):
 
     def remove_signal(self, name: str):
         """
-        Remove singal from instace.
+        Remove singal from instance.
 
         Parameters
         ----------

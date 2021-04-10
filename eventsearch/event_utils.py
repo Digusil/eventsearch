@@ -51,25 +51,25 @@ def search_breaks(
     Parameters
     ----------
     data: SingleSignal
-        signle that will be analyssed
+        signal that will be analyssed
     neg_threshold: float
         threshold for the negative slope trigger (start trigger)
     pos_threshold: flaot
         threshold for the positive slope trigger (end trigger)
     slope_threshold_linear_point: float, optional
-        slope threshold for inflection trigger. Default 2000.
+        slope threshold for inflection trigger. Default is 2000.
     min_peak_threshold: float, optional
-        min. peak amplidute threshold. Default 3.0
+        min. peak amplidute threshold. Default is 3.0
     min_length: float
-        min. event lenght threshold. Default 0.001
+        min. event lenght threshold. Default is 0.001
     neg_smoother: Smoother, optional
-        smoother for start trigger. Default Smoother(window_len=31, window='hann').
+        smoother for start trigger. Default is Smoother(window_len=31, window='hann').
     pos_smoother: Smoother, optional
-        smootehr for end trigger. Default Smoother(window_len=31, window='hann').
+        smoother for end trigger. Default is Smoother(window_len=31, window='hann').
     event_class: type, optional
-        class of the returned events. Default CoreEvent.
+        class of the returned events. Default is CoreEvent.
     custom_data: dict, optional
-        Add cosutm data to event. Default {}.
+        Add costum data to event. Default is {}.
 
     Returns
     -------
@@ -78,7 +78,7 @@ def search_breaks(
 
     def mask_list_generator(mask_list, raw, neg_smoothed, pos_smoothed):
         """
-        Generator for event detection.
+        generator for event detection
 
         Parameters
         ----------
@@ -311,7 +311,7 @@ def search_breaks(
 
 def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 0):
     """
-    Analyses slopes to linearize the rising and peak section.
+    Analyse slopes to linearize the rising and peak section.
 
     Parameters
     ----------
@@ -406,9 +406,9 @@ def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iter
     data: SingleSignal
         signal data
     cutoff: float, optional
-        cutoff value for value filtering. Default 0.9.
+        cutoff value for value filtering. Default is 0.9.
     iterations: int
-        number of iterations. Default 3.
+        number of iterations. Default is 3.
 
     Returns
     -------
@@ -417,7 +417,7 @@ def analyse_capacitor_behavior(data: CoreSingleSignal, cutoff: float = 0.9, iter
     tau: float
         time constant
     porpotion: float
-        proportion of survied data points
+        proportion of survived data points
     """
     pos = np.median(data.y) > 0
 
@@ -470,9 +470,9 @@ def get_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, yma
     event_data: DataFrame
         event data
     ymax_name: str, optional
-        name of the settling value column. Default 'ymax'.
+        name of the settling value column. Default is 'ymax'.
     tau_name: str, optional
-        name of the time constant column. Default 'tau'.
+        name of the time constant column. Default is 'tau'.
 
     Returns
     -------
@@ -543,7 +543,7 @@ def refine_capacitor_behavior(data: CoreSingleSignal, event_data: pd.DataFrame, 
 
 def event_generator(data: CoreSingleSignal, event_list: pd.DataFrame, func: callable, **kwargs) -> tuple:
     """
-    Generator to map function on event dataframe.
+    generator to map function on event dataframe
 
     Parameters
     ----------

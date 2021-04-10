@@ -64,7 +64,7 @@ def smooth(x, window_len=11, window='hann', convolve_mode='same', **kwargs):
             - 'full'
             - 'same'
             - 'valid'
-            Default 'same'
+            Default is 'same'
             see: https://numpy.org/doc/stable/reference/generated/numpy.convolve.html
 
     Returns
@@ -106,7 +106,7 @@ class Smoother(object):
                 Default 'same'
                 see: https://numpy.org/doc/stable/reference/generated/numpy.convolve.html
         signal_smoothing: bool, optional
-            If True the signal will be smoothed. Default True.
+            If True the signal will be smoothed. Default is True.
         """
         self._window_len = None
         self._signal_smoothing = None
@@ -119,12 +119,12 @@ class Smoother(object):
 
     def smooth(self, data, **kwargs):
         """
-        smooth data
+        Smooth data.
 
         Parameters
         ----------
         data: ndarray
-            data that will be smoothed
+            Data that will be smoothed.
 
         Returns
         -------
@@ -140,7 +140,7 @@ class Smoother(object):
         """
         Returns
         -------
-        will the signal be smoothed: bool
+        Is True, if the signal will be smoothed: bool
         """
         return self._signal_smoothing
 
@@ -152,7 +152,7 @@ class Smoother(object):
         Parameters
         ----------
         value: bool
-            If True the signal will be smoothed. Default True.
+            If True, the signal will be smoothed. Default is True.
         """
         self._signal_smoothing = value
 
@@ -252,7 +252,7 @@ def integral_trapz(t, y, **kwargs):
     t: ndarray
         time points
     y: ndarray
-        singal values
+        signal values
 
     Returns
     -------
@@ -269,19 +269,19 @@ def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost
     Parameters
     ----------
     x: ndarray
-        value arrays of set 1.
+        value arrays of set 1
     y ndarray
-        value arrays of set 2.
+        value arrays of set 2
     metric: str, optional
-        Used metric for distance calculation. Default 'euclidean'. See
+        Used metric for distance calculation. Default is 'euclidean'. See
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html
     indices_output: bool, optional
-        if True, only return indeces. Default False.
+        If True, only return indeces. Default is False.
     feature_cost: list or None, optional
-        list of costs for the different features to scale them before disntace calculation.
+        list of costs for the different features to scale them before distance calculation
     threshold: float, optional
-        maximum valid threshold for assignen. If an object has no parnert with a smaller distance, the object will not
-        be assigned to an other object. Defualt Inf.
+        Maximum valid threshold for assignment. If an object has no partner with a smaller distance, the object will not
+        be assigned to an other object. Default is Inf.
 
     Returns
     -------
