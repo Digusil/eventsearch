@@ -1,0 +1,54 @@
+# generic patterns
+**/gitignore/
+**/.data/
+**/data.*/
+**/.test/
+**/.playcorner/
+**/_*/
+
+# program specific patterns
+**/\.idea/
+
+*.m~
+*.asv
+
+*.sublime-project
+*.sublime-workspace
+
+**/\.ipynb_checkpoints/
+
+**/venv/
+
+# Python caching directories
+**/\__pycache__/
+
+# Python packaging directories and files
+**/*.egg-info
+**/dist/*.tar.gz
+**/dist/*.egg
+**/dist/*.exe
+**/build/lib/*
+**/build/bdist.*/*
+
+# Python sphinx documentation files
+**/docs/build/
+
+# MyPy caching directory
+**/.mypy_cache/
+
+# logs
+**/logs/*
+**/logs*/*
+
+# common data files
+*.gz
+*.zip
+*.h5
+*.npy
+*.mat
+*.pkl
+*.csv
+
+# macOS
+\.DS_Store
+**\._*
