@@ -4,7 +4,7 @@ import numpy as np
 
 from eventsearch.signals import SingleSignal, SmoothedSignal
 from eventsearch.utils import Smoother
-from utils import TemporaryFolder
+from .utils import TemporaryFolder
 
 
 class TestSingleSingal(unittest.TestCase):
