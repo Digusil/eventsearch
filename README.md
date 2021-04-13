@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/github/license/Digusil/eventsearch.svg)][![Build status](https://github.com/Digusil/eventsearch/actions/workflows/python-package.yml/badge.svg?branch=master)][![Version](https://img.shields.io/github/v/release/Digusil/eventsearch.svg)]
+
 **eventsearch** is a python package for the detection of spontaneous events in time series. We programmed this to detect events that start with a step like rising and a capacitor like recovery to a settle value. 
 
 ![Image](https://raw.githubusercontent.com/Digusil/eventsearch/master/example/example.png)
