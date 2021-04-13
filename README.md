@@ -16,7 +16,11 @@ cd eventsearch && pyhton setup.py install
 ### Testing
 The package has a unittest for the core functions.
 ```shell
-cd ./test && python -m unittest
+python -m unittest
+```
+Alternative:
+```shell
+pytest
 ```
 
 ## Acknowledgement
