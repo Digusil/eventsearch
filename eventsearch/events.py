@@ -379,7 +379,7 @@ class EventDataFrame(CoreEventDataFrame):
             neg_smoother: Smoother = Smoother(window_len=31, window='hann'), **kwargs
     ):
         """
-        Analyse witch custom event list.
+        Analyse with custom event list.
 
         Parameters
         ----------
@@ -400,6 +400,9 @@ class EventDataFrame(CoreEventDataFrame):
         return event_df
 
     def search_breaks(self, *args, signal=None, **kwargs):
+        warnings.warn("'search_breaks' will be removed in the future. Use 'search'!", warnings.DeprecationWarning)
+
+    def search(self, *args, signal=None, **kwargs):
         """
         Search events by slope threshold triggers.
 

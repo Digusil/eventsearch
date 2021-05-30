@@ -327,3 +327,61 @@ def assign_elements(x, y, metric='euclidean', indices_output=False, feature_cost
             rest = np.delete(y, col_ind, axis=0)
 
         return np.hstack((x[row_ind], y[col_ind])), rest
+
+
+class ECDF():
+    def __init__(self, data):
+        """
+        Simple empirical cdf class.
+
+        Parameters
+        ----------
+        data: ndarray
+        """
+        self._x = None
+        self._y = None
+
+        self._clac(data)
+
+    @property
+    def x(self):
+        """
+        Returns
+        -------
+        ecdf positions: ndarray
+        """
+        return self._x
+
+    @property
+    def y(self):
+        """
+        Returns
+        -------
+        ecdf values: ndarray
+        """
+        return np.linspace(0, 1, self.x.shape[0]+1, endpoint=True)[1:]
+
+    def _clac(self, data):
+        """
+        Calculate ecdf
+
+        Parameters
+        ----------
+        data: ndarray
+        """
+        self._x = np.sort(data.flatten())
+
+    def eval(self, y_value):
+        """
+        Evaluate ecdf based on value.
+
+        Parameters
+        ----------
+        y_value: float or ndarray
+            Values has to be within (0, 1].
+
+        Returns
+        -------
+        ecdf value: float or ndarray
+        """
+        return np.interp(y_value, self.y, self.x)
