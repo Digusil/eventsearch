@@ -652,3 +652,10 @@ class CoreEventDataFrame(IdentifedObject):
             Name of the signal that will be removed.
         """
         del self._signal_dict[name]
+
+    def remmove_dataset(self):
+        """
+        Reset event dataset and remove all signals.
+        """
+        self._signal_dict = {}
+        self.data = pd.DataFrame()
