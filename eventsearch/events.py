@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -399,10 +401,42 @@ class EventDataFrame(CoreEventDataFrame):
 
         return event_df
 
-    def search_breaks(self, *args, signal=None, **kwargs):
-        warnings.warn("'search_breaks' will be removed in the future. Use 'search'!", warnings.DeprecationWarning)
+    def search_breaks(self, *args, **kwargs):
+        warnings.warn("'search_breaks' will be removed in the future. Use 'search'!", DeprecationWarning)
+        self.search(*args, **kwargs)
 
-    def search(self, *args, signal=None, **kwargs):
+    def search(self, *args, **kwargs):
+        """
+        Search events by slope threshold triggers.
+
+        Parameters
+        ----------
+        neg_threshold: float
+            threshold for the negative slope trigger (start trigger)
+        pos_threshold: float
+            threshold for the positive slope trigger (end trigger)
+        slope_threshold_linear_point: float, optional
+            slope threshold for inflection trigger. Default is 2000.
+        min_peak_threshold: float, optional
+            min. peak amplidute threshold. Default is 3.0.
+        min_length: float
+            min. event lenght threshold. Default is 0.001.
+        neg_smoother: Smoother, optional
+            smoother for start trigger. Default is Smoother(window_len=31, window='hann').
+        pos_smoother: Smoother, optional
+            smootehr for end trigger. Default is Smoother(window_len=31, window='hann').
+        event_class: type, optional
+            class of the returned events. Default is CoreEvent.
+        custom_data: dict, optional
+            Add cosutm data to event. Default is {}.
+        signal: SingleSignal, str or None, optional
+            Singla data that will be analysed. If SingleSignal, the signal will be added to the singal dictionary. If
+            string, the name will be looked up in the signal dictionary. If None, all registraded signals in the signal
+            dictionary will be analysed. Default is None.
+        """
+        self._search_slope(*args, **kwargs)
+
+    def _search_slope(self, *args, signal=None, **kwargs):
         """
         Search events by slope threshold triggers.
 

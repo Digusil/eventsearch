@@ -1,6 +1,7 @@
 from copy import copy
 
 import numpy as np
+import pandas as pd
 from cached_property import cached_property
 
 from .saving import save_signal_to_hdf5, load_signal_from_hdf5
@@ -50,6 +51,14 @@ class SingleSignal(CoreSingleSignal):
             del smoothed.__dict__['y']
 
         return smoothed
+
+    def to_series(self):
+        """
+        Returns
+        -------
+        signal: pandas Series
+        """
+        return pd.Series(self.y, index=self.t, )
 
     def save(self, filepath, **kwargs):
         """
