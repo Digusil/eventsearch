@@ -436,7 +436,15 @@ class EventDataFrame(CoreEventDataFrame):
         """
         self._search_slope(*args, **kwargs)
 
-    def _search_slope(self, *args, signal=None, **kwargs):
+    def _search_slope(
+            self,
+            neg_threshold,
+            *args,
+            signal=None,
+            mask_list=None,
+            neg_smoother: Smoother = Smoother(window_len=31, window='hann'),
+            **kwargs
+    ):
         """
         Search events by slope threshold triggers.
 
@@ -468,17 +476,46 @@ class EventDataFrame(CoreEventDataFrame):
         if isinstance(signal, CoreSingleSignal):
             self.add_signal(signal, signal.name)
 
-            for event in search_breaks(signal, *args, **kwargs):
-                self.data = self.data.append(event, ignore_index=True)
+            if mask_list is None:
+                mask_list = self._slope_based_mask_list(signal, neg_threshold, neg_smoother)
+
+            if len(mask_list) > 0:
+                for event in search_breaks(signal, mask_list, neg_threshold, *args, neg_smoother=neg_smoother, **kwargs):
+                    self.data = self.data.append(event, ignore_index=True)
 
         elif isinstance(signal, str):
-            for event in search_breaks(self.signal_dict[signal], *args, **kwargs):
-                self.data = self.data.append(event, ignore_index=True)
+            if mask_list is None:
+                mask_list = self._slope_based_mask_list(self.signal_dict[signal], neg_threshold, neg_smoother)
+
+            if len(mask_list) > 0:
+                for event in search_breaks(self.signal_dict[signal], mask_list, neg_threshold, *args, neg_smoother=neg_smoother, **kwargs):
+                    self.data = self.data.append(event, ignore_index=True)
 
         else:
-            for signal in self.signal_dict.values():
-                for event in search_breaks(signal, *args, **kwargs):
-                    self.data = self.data.append(event, ignore_index=True)
+            if mask_list is not None and len(mask_list) != len(self.signal_dict):
+                raise AttributeError("'mask_list' has to be a list of lists with the same entries as the number of added signals! ")
+            elif mask_list is None:
+                mask_list = len(self.signal_dict) * [None, ]
+
+            for signal, masks in zip(self.signal_dict.values(), mask_list):
+                if masks is None:
+                    masks = self._slope_based_mask_list(signal, neg_threshold, neg_smoother)
+
+                if len(mask_list) > 0:
+                    for event in search_breaks(signal, masks, neg_threshold, *args, neg_smoother=neg_smoother, **kwargs):
+                        self.data = self.data.append(event, ignore_index=True)
+
+    def _slope_based_mask_list(self, signal, neg_threshold, neg_smoother: Smoother = Smoother(window_len=31, window='hann')):
+        neg_smoothed_signal = signal.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_' + signal.name)
+        mask3 = neg_smoothed_signal.dydt <= neg_threshold
+        mask3 = mask3 * np.arange(mask3.shape[0])
+        mask3 = mask3[mask3 > 0]
+
+        if len(mask3) > 0:
+            pos = np.where(np.diff(mask3) > 1)[0] + 1
+            mask_list = np.split(mask3, pos)
+
+        return mask_list
 
     def export_event(self, event_id, event_type: type = Event):
         """
