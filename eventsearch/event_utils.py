@@ -154,9 +154,13 @@ def search_breaks(
                 event['zero_grad_end_value'] = data.y[zero_grad_end_id] - event.reference_value
 
                 try:
-                    event['slope'] = np.min(neg_smoothed_signal.dydt[start_id:local_peak_id + zero_grad_start_id])
+                    if start_id < local_peak_id + zero_grad_start_id:
+                        event['slope'] = np.min(neg_smoothed_signal.dydt[start_id:local_peak_id + zero_grad_start_id])
+                    else:
+                        event['slope'] = np.min(
+                            neg_smoothed_signal.dydt[zero_grad_start_id:local_peak_id + zero_grad_start_id])
                 except ValueError:
-                    event['slope'] = np.min(neg_smoothed_signal.dydt[zero_grad_start_id:local_peak_id + zero_grad_start_id])
+                    event['slope'] = np.NaN
 
                 event['half_rising_value'] = np.mean([event['peak_value'], event['zero_grad_start_value']])
                 event['half_rising_time'] = find_partial_rising_time(

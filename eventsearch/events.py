@@ -515,7 +515,9 @@ class EventDataFrame(CoreEventDataFrame):
             pos = np.where(np.diff(mask3) > 1)[0] + 1
             mask_list = np.split(mask3, pos)
 
-        return mask_list
+            return mask_list
+        else:
+            return []
 
     def export_event(self, event_id, event_type: type = Event):
         """
