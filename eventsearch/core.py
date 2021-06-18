@@ -66,6 +66,9 @@ class CoreSingleSignal(IdentifedCachedObject):
             else:
                 __signal_names__.update({self._name: self.get_hash()})
 
+    def __len__(self):
+        return len(self.y)
+
     def _gen_name(self, name: str = None):
         """
         Generate object name.
@@ -169,6 +172,15 @@ class CoreSingleSignal(IdentifedCachedObject):
         self.set_t(value)
 
     @property
+    def fs(self):
+        """
+        Returns
+        -------
+        fs: float
+        """
+        return np.median(1/np.diff(self.t))
+
+    @property
     def name(self):
         """
         Returns
@@ -253,7 +265,7 @@ class CoreSingleSignal(IdentifedCachedObject):
         -------
         sign change trigger: ndarray
         """
-        return np.array([0] + list(np.diff(np.sign(self.dydt))))
+        return np.sign([0] + list(np.diff(np.sign(self.dydt))))
 
     @cached_property
     def sign_change_d2ydt2(self):
@@ -264,7 +276,7 @@ class CoreSingleSignal(IdentifedCachedObject):
         -------
         sign change trigger: ndarray
         """
-        return np.array([0] + list(np.diff(np.sign(self.d2ydt2))))
+        return np.sign([0] + list(np.diff(np.sign(self.d2ydt2))))
 
     def __getitem__(self, item):
         config = self.get_config()
@@ -652,3 +664,10 @@ class CoreEventDataFrame(IdentifedObject):
             Name of the signal that will be removed.
         """
         del self._signal_dict[name]
+
+    def remmove_dataset(self):
+        """
+        Reset event dataset and remove all signals.
+        """
+        self._signal_dict = {}
+        self.data = pd.DataFrame()

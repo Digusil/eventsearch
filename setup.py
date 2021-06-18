@@ -1,7 +1,7 @@
 #! /opt/conda/bin/python3
 """ General PyPI compliant setup.py configuration of the package """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 version = {}
 with open("eventsearch/version.py") as fp:
@@ -42,7 +42,7 @@ setup(
     url='https://github.com/digusil/eventsearch',  # todo: set package url
     license=__license__,
     keywords=['eventsearch', 'spontaneous event detection'],
-    packages=['eventsearch'],
+    packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",

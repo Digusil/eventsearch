@@ -13,8 +13,12 @@ CHANGE LOG:
         initial version based on wecanalysis
 
     - 0.1.1:
-        Add docstrings and unittests
+        add docstrings and unittests
         first github release
 
+    - 0.1.2
+        utils for threshold based deteciotion
+        slope analytics for custom mask list
+
 '''
-__version__ = '0.1.1'
+__version__ = '0.1.2'

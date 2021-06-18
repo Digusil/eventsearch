@@ -34,6 +34,7 @@ def virtual_start(x_start, slope_start, y_base, y_start):
 
 def search_breaks(
         data: CoreSingleSignal,
+        mask_list: list,
         neg_threshold: float,
         pos_threshold: float,
         slope_threshold_linear_point: float = 2e3,
@@ -52,6 +53,8 @@ def search_breaks(
     ----------
     data: SingleSignal
         signal that will be analyssed
+    mask_list: list
+        List of masks, which define the event start area.
     neg_threshold: float
         threshold for the negative slope trigger (start trigger)
     pos_threshold: flaot
@@ -76,237 +79,229 @@ def search_breaks(
     event generator: class (event_class)
     """
 
-    def mask_list_generator(mask_list, raw, neg_smoothed, pos_smoothed):
-        """
-        generator for event detection
+    neg_smoothed_signal = data.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_' + data.name)
+    pos_smoothed_signal = data.to_smoothed_signal(smoother=pos_smoother, name='smoothed_pos_' + data.name)
 
-        Parameters
-        ----------
-        mask_list: list
-            list of event masks
-        raw: SingleSignal
-            signal data
-        neg_smoothed: SmoothedSignal
-            start trigger signal
-        pos_smoothed:  SmoothedSignal
-            end trigger signal
+    break_list = np.array(
+        list(mask_list_generator(pos_threshold, mask_list, data, neg_smoothed_signal, pos_smoothed_signal))
+    )
 
-        Returns
-        -------
-        yields tuple:
-            zero_grad_start_id: int
-                position of the first zero gradient before the start trigger point
-            start_id: int
-                start position
-            n_peaks: int
-                count zero gradient occurence in event time window
-            peak_id: int
-                peak position
-            end_id: int
-                end position
-            zero_grad_end_id:
-                position of the first zero gradient after the end trigger point
-        """
-        for mask in mask_list:
-            try:
-                x = np.r_[mask[0] - 1, mask]
-            except IndexError:
-                x = np.r_[mask[0], mask]
+    n = break_list.shape[0]
 
-            start_id = x[np.argmax(raw.y[x])]
-            min_id = np.argmin(raw.y[x])
+    fs = data.fs
+    kurtosis_trigger = neg_smoothed_signal.sign_change_d2ydt2 > 0
 
-            pos = np.where(np.diff(1.0 * (neg_smoothed.dydt[x[min_id]:] > pos_threshold)) < 0)[0]
+    previous_event = None
 
-            end_id = int(pos[0] + x[min_id]) if len(pos) > 0 else len(raw.y) - 1
-            if end_id - start_id > 1:
-                peak_id = np.argmin(raw.y[start_id:end_id]) + start_id
-            else:
-                peak_id = start_id
+    for break_data in break_list:
+        zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id = break_data
 
-            zero_grad_start_pos = np.where(neg_smoothed.sign_change_dydt[:start_id] < 0)[0]
-            zero_grad_start_id = zero_grad_start_pos[-1] if len(zero_grad_start_pos) > 0 else 0
-            zero_grad_end_pos = np.where(pos_smoothed.sign_change_dydt[end_id:] < 0)[0]
-            zero_grad_end_id = zero_grad_end_pos[0] + end_id if len(zero_grad_end_pos) > 0 else len(raw.y) - 1
+        if end_id - min_length * fs >= start_id:
+            start_y0, start_point = analyse_slopes(
+                neg_smoothed_signal,
+                id_start=zero_grad_start_id,
+                id_end=zero_grad_end_id + 1,
+                direction='start',
+                threshold=slope_threshold_linear_point
+            )
 
-            zero_grad_peak_ids = np.where(sign_change[start_id:end_id] > 0)
+            reference_time = copy(start_point)
+            reference_value = neg_smoothed_signal.y[zero_grad_start_id]
 
-            n_peaks = len(zero_grad_peak_ids)
+            t = data.t[zero_grad_start_id:zero_grad_end_id]
+            y = data.y[zero_grad_start_id:zero_grad_end_id]
 
-            yield zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id
+            t_local = t - reference_time
+            y_local = y - reference_value
 
-    if True:  # np.median(data.y) > 0:
-        neg_smoothed_signal = data.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_' + data.name)
-        pos_smoothed_signal = data.to_smoothed_signal(smoother=pos_smoother, name='smoothed_pos_' + data.name)
-        y_sign = 1
-    else:
-        neg_smoothed_signal = SmoothedSignal(t=data.t, y=-data.y, smoother=neg_smoother,
-                                             name='smoothed_neg_' + data.name)
-        pos_smoothed_signal = SmoothedSignal(t=data.t, y=-data.y, smoother=pos_smoother,
-                                             name='smoothed_pos_' + data.name)
-        y_sign = -1
+            peak_value = np.min(y_local)
 
-    sign_change = np.array([0] + list(np.diff(np.sign(neg_smoothed_signal.dydt))))
+            if np.abs(peak_value) >= min_peak_threshold:
+                event = pd.Series()
 
-    kurtosis_change = 1.0 * (neg_smoothed_signal.d2ydt2 > 0)
-    kurtosis_trigger = np.array([0] + list(np.diff(kurtosis_change) > 0))
+                local_peak_id = np.argmin(y_local[start_id-zero_grad_start_id:]) + start_id-zero_grad_start_id
 
-    mask3 = neg_smoothed_signal.dydt <= neg_threshold
-    mask3 = mask3 * np.arange(mask3.shape[0])
-    mask3 = mask3[mask3 > 0]
+                event['peak_time'] = t_local[local_peak_id]
+                event['peak_value'] = peak_value
 
-    fs = np.median(1 / np.diff(data.t))
+                event['phase_counter'] = np.sum(
+                    kurtosis_trigger[
+                        np.logical_and(
+                            reference_time <= neg_smoothed_signal.t,
+                            neg_smoothed_signal.t <= event['peak_time'] + reference_time
+                        )
+                    ]
+                )
 
-    if len(mask3) > 0:
-        pos = np.where(np.diff(mask3) > 1)[0] + 1
-        break_list = np.array(
-            list(mask_list_generator(np.split(mask3, pos), data, neg_smoothed_signal, pos_smoothed_signal)))
+                event['signal_name'] = data.name
 
-        n = break_list.shape[0]
-    else:
-        n = 0
+                event['reference_time'] = reference_time
+                event['reference_value'] = reference_value
 
-    if n > 0:
-        previous_event = None
+                event['zero_grad_start_time'] = data.t[zero_grad_start_id] - event.reference_time
+                event['zero_grad_start_value'] = data.y[zero_grad_start_id] - event.reference_value
+                event['start_time'] = data.t[start_id] - event.reference_time
+                event['start_value'] = data.y[start_id] - event.reference_value
+                event['end_time'] = data.t[end_id] - event.reference_time
+                event['end_value'] = data.y[end_id] - event.reference_value
+                event['zero_grad_end_time'] = data.t[zero_grad_end_id] - event.reference_time
+                event['zero_grad_end_value'] = data.y[zero_grad_end_id] - event.reference_value
 
-        for break_data in break_list:
-            zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id = break_data
+                try:
+                    if start_id < local_peak_id + zero_grad_start_id:
+                        event['slope'] = np.min(neg_smoothed_signal.dydt[start_id:local_peak_id + zero_grad_start_id])
+                    else:
+                        event['slope'] = np.min(
+                            neg_smoothed_signal.dydt[zero_grad_start_id:local_peak_id + zero_grad_start_id])
+                except ValueError:
+                    event['slope'] = np.NaN
 
-            if end_id - min_length * fs >= start_id:
-                start_y0, start_point = analyse_slopes(
+                event['half_rising_value'] = np.mean([event['peak_value'], event['zero_grad_start_value']])
+                event['half_rising_time'] = find_partial_rising_time(
+                    t_local,
+                    y_local,
+                    event['half_rising_value']
+                )
+
+                event['rising_20_value'] = 0.2 * (event['peak_value'] - event['zero_grad_start_value']) + event[
+                    'zero_grad_start_value']
+
+                event['rising_20_time'] = find_partial_rising_time(
+                    t_local,
+                    y_local,
+                    event['rising_20_value']
+                )
+
+                event['rising_80_value'] = 0.8 * (event['peak_value'] - event['zero_grad_start_value']) + event[
+                    'zero_grad_start_value']
+
+                event['rising_80_time'] = find_partial_rising_time(
+                    t_local,
+                    y_local,
+                    event['rising_80_value']
+                )
+
+                neg_y0, neg_point = analyse_slopes(
                     neg_smoothed_signal,
                     id_start=zero_grad_start_id,
                     id_end=zero_grad_end_id + 1,
-                    direction='start',
+                    direction='neg',
                     threshold=slope_threshold_linear_point
                 )
 
-                reference_time = copy(start_point)
-                reference_value = y_sign * neg_smoothed_signal.y[zero_grad_start_id]
+                pos_y0, pos_point = analyse_slopes(
+                    pos_smoothed_signal,
+                    id_start=zero_grad_start_id,
+                    id_end=zero_grad_end_id + 1,
+                    direction='pos',
+                    threshold=slope_threshold_linear_point
+                )
 
-                t = data.t[zero_grad_start_id:zero_grad_end_id]
-                y = data.y[zero_grad_start_id:zero_grad_end_id]
+                event['simplified_peak_start_value'] = neg_y0 - event.reference_value
+                event['simplified_peak_start_time'] = neg_point - event.reference_time
+                event['simplified_peak_end_value'] = pos_y0 - event.reference_value
+                event['simplified_peak_end_time'] = pos_point - event.reference_time
+                event['simplified_peak_duration'] = pos_point - neg_point
 
-                t_local = t - reference_time
-                y_local = y - reference_value
+                event['rising_time'] = neg_point - data.t[start_id]
+                event['recovery_time'] = data.t[end_id] - pos_point
 
-                peak_value = np.min(y_local)
+                mask = 0 <= t_local
+                event['integral'] = integral_trapz(t_local[mask], y_local[mask])
 
-                if np.abs(peak_value) >= min_peak_threshold:
-                    event = pd.Series()
+                if previous_event is not None:
+                    event['previous_event_reference_period'] = event.reference_time - previous_event.reference_time
+                    event['previous_event_time_gap'] = \
+                        event.previous_event_reference_period - previous_event.zero_grad_end_time
 
-                    event['peak_time'] = t_local[np.argmin(y_local)]
-                    event['peak_value'] = peak_value
+                    event['intersection_problem'] = True if (event.peak_time + event.reference_time) - (
+                            previous_event.end_time + previous_event.reference_time) <= 0 else False
+                    event['overlapping'] = True if event.previous_event_time_gap < 0 else False
 
-                    event['phase_counter'] = np.sum(
-                        kurtosis_trigger[
-                            np.logical_and(
-                                reference_time <= neg_smoothed_signal.t,
-                                neg_smoothed_signal.t <= event['peak_time'] + reference_time
-                            )
-                        ]
-                    )
-
-                    event['signal_name'] = data.name
-
-                    event['reference_time'] = reference_time
-                    event['reference_value'] = reference_value
-
-                    event['zero_grad_start_time'] = data.t[zero_grad_start_id] - event.reference_time
-                    event['zero_grad_start_value'] = data.y[zero_grad_start_id] - event.reference_value
-                    event['start_time'] = data.t[start_id] - event.reference_time
-                    event['start_value'] = data.y[start_id] - event.reference_value
-                    event['end_time'] = data.t[end_id] - event.reference_time
-                    event['end_value'] = data.y[end_id] - event.reference_value
-                    event['zero_grad_end_time'] = data.t[zero_grad_end_id] - event.reference_time
-                    event['zero_grad_end_value'] = data.y[zero_grad_end_id] - event.reference_value
-
-                    event['half_rising_value'] = np.mean([event['peak_value'], event['zero_grad_start_value']])
-                    event['half_rising_time'] = find_partial_rising_time(
-                        t_local,
-                        y_local,
-                        event['half_rising_value']
-                    )
-
-                    event['rising_20_value'] = 0.2 * (event['peak_value'] - event['zero_grad_start_value']) + event[
-                        'zero_grad_start_value']
-
-                    event['rising_20_time'] = find_partial_rising_time(
-                        t_local,
-                        y_local,
-                        event['rising_20_value']
-                    )
-
-                    event['rising_80_value'] = 0.8 * (event['peak_value'] - event['zero_grad_start_value']) + event[
-                        'zero_grad_start_value']
-
-                    event['rising_80_time'] = find_partial_rising_time(
-                        t_local,
-                        y_local,
-                        event['rising_80_value']
-                    )
-
-                    neg_y0, neg_point = analyse_slopes(
-                        neg_smoothed_signal,
-                        id_start=zero_grad_start_id,
-                        id_end=zero_grad_end_id + 1,
-                        direction='neg',
-                        threshold=slope_threshold_linear_point
-                    )
-
-                    pos_y0, pos_point = analyse_slopes(
-                        pos_smoothed_signal,
-                        id_start=zero_grad_start_id,
-                        id_end=zero_grad_end_id + 1,
-                        direction='pos',
-                        threshold=slope_threshold_linear_point
-                    )
-
-                    event['simplified_peak_start_value'] = neg_y0 - event.reference_value
-                    event['simplified_peak_start_time'] = neg_point - event.reference_time
-                    event['simplified_peak_end_value'] = pos_y0 - event.reference_value
-                    event['simplified_peak_end_time'] = pos_point - event.reference_time
-                    event['simplified_peak_duration'] = pos_point - neg_point
-
-                    event['rising_time'] = neg_point - data.t[start_id]
-                    event['recovery_time'] = data.t[end_id] - pos_point
-
-                    mask = 0 <= t_local
-                    event['integral'] = integral_trapz(t_local[mask], y_local[mask])
-
-                    if previous_event is not None:
-                        event['previous_event_reference_period'] = event.reference_time - previous_event.reference_time
-                        event['previous_event_time_gap'] = \
-                            event.previous_event_reference_period - previous_event.zero_grad_end_time
-
-                        event['intersection_problem'] = True if (event.peak_time + event.reference_time) - (
-                                previous_event.end_time + previous_event.reference_time) <= 0 else False
-                        event['overlapping'] = True if event.previous_event_time_gap < 0 else False
-
-                        if event['intersection_problem']:
-                            event['event_complex'] = True
-                            previous_event['event_complex'] = True
-                        else:
-                            event['event_complex'] = False
-
-                        event['previous_event_integral'] = previous_event.integral
-                        event['previous_event_integral_difference'] = event.integral - previous_event.integral
-
+                    if event['intersection_problem']:
+                        event['event_complex'] = True
+                        previous_event['event_complex'] = True
                     else:
-                        event['previous_event_time_gap'] = np.NaN
-                        event['previous_event_reference_period'] = np.NaN
-
-                        event['intersection_problem'] = False
-                        event['overlapping'] = False
-
                         event['event_complex'] = False
 
-                    for key in custom_data:
-                        event[key] = custom_data[key]
+                    event['previous_event_integral'] = previous_event.integral
+                    event['previous_event_integral_difference'] = event.integral - previous_event.integral
 
-                    previous_event = event
+                else:
+                    event['previous_event_time_gap'] = np.NaN
+                    event['previous_event_reference_period'] = np.NaN
 
-                    yield event
+                    event['intersection_problem'] = False
+                    event['overlapping'] = False
+
+                    event['event_complex'] = False
+
+                for key in custom_data:
+                    event[key] = custom_data[key]
+
+                previous_event = event
+
+                yield event
+
+
+def mask_list_generator(pos_threshold, mask_list, raw, neg_smoothed, pos_smoothed):
+    """
+    generator for event detection
+
+    Parameters
+    ----------
+    mask_list: list
+        List of masks, which define the event start area
+    raw: SingleSignal
+        signal data
+    neg_smoothed: SmoothedSignal
+        start trigger signal
+    pos_smoothed:  SmoothedSignal
+        end trigger signal
+
+    Returns
+    -------
+    yields tuple:
+        zero_grad_start_id: int
+            position of the first zero gradient before the start trigger point
+        start_id: int
+            start position
+        n_peaks: int
+            count zero gradient occurence in event time window
+        peak_id: int
+            peak position
+        end_id: int
+            end position
+        zero_grad_end_id:
+            position of the first zero gradient after the end trigger point
+    """
+    for mask in mask_list:
+        try:
+            x = np.r_[mask[0] - 1, mask]
+        except IndexError:
+            x = np.r_[mask]
+
+        min_id = np.argmin(raw.y[x])
+        start_id = x[np.argmax(raw.y[x[x <= min_id + x[0]]])]
+
+        pos = np.where(np.diff(1.0 * (neg_smoothed.dydt[x[min_id]:] > pos_threshold)) < 0)[0]
+
+        end_id = int(pos[0] + x[min_id]) if len(pos) > 0 else len(raw.y) - 1
+        if end_id - start_id > 1:
+            peak_id = np.argmin(raw.y[start_id:end_id]) + start_id
+        else:
+            peak_id = start_id
+
+        zero_grad_start_pos = np.where(neg_smoothed.sign_change_dydt[:start_id] < 0)[0]
+        zero_grad_start_id = zero_grad_start_pos[-1] if len(zero_grad_start_pos) > 0 else 0
+        zero_grad_end_pos = np.where(pos_smoothed.sign_change_dydt[end_id:] < 0)[0]
+        zero_grad_end_id = zero_grad_end_pos[0] + end_id if len(zero_grad_end_pos) > 0 else len(raw.y) - 1
+
+        zero_grad_peak_ids = np.where(neg_smoothed.sign_change_dydt[start_id:end_id] > 0)
+
+        n_peaks = len(zero_grad_peak_ids)
+
+        yield zero_grad_start_id, start_id, n_peaks, peak_id, end_id, zero_grad_end_id
 
 
 def analyse_slopes(signal, id_start, id_end, direction: str, threshold: float = 0):
