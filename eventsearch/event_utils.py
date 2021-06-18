@@ -53,6 +53,8 @@ def search_breaks(
     ----------
     data: SingleSignal
         signal that will be analyssed
+    mask_list: list
+        List of masks, which define the event start area.
     neg_threshold: float
         threshold for the negative slope trigger (start trigger)
     pos_threshold: flaot
@@ -79,14 +81,6 @@ def search_breaks(
 
     neg_smoothed_signal = data.to_smoothed_signal(smoother=neg_smoother, name='smoothed_neg_' + data.name)
     pos_smoothed_signal = data.to_smoothed_signal(smoother=pos_smoother, name='smoothed_pos_' + data.name)
-
-    # sign_change = np.array([0] + list(np.diff(np.sign(neg_smoothed_signal.dydt))))
-
-    #kurtosis_change = 1.0 * (neg_smoothed_signal.d2ydt2 > 0)
-    #kurtosis_trigger = np.array([0] + list(np.diff(kurtosis_change) > 0))
-
-    # fs = np.median(1 / np.diff(data.t))
-
 
     break_list = np.array(
         list(mask_list_generator(pos_threshold, mask_list, data, neg_smoothed_signal, pos_smoothed_signal))
@@ -257,7 +251,7 @@ def mask_list_generator(pos_threshold, mask_list, raw, neg_smoothed, pos_smoothe
     Parameters
     ----------
     mask_list: list
-        list of event masks
+        List of masks, which define the event start area
     raw: SingleSignal
         signal data
     neg_smoothed: SmoothedSignal
